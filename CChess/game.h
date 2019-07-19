@@ -46,6 +46,7 @@ public:
 	*/
 	void save() const;
 
+
 	/*
 		@return		true if moves in file are valid and loaded, false otherwise
 
@@ -53,17 +54,19 @@ public:
 	*/
 	bool load();
 
+
 	/*
 		resets game conditions to start
 	*/
 	void reset();
 
+
 	/*
 		@return		true if quit is confirmed
 	*/
 	bool quit();
-private:
 
+private:
 	//Member variables
 	//----------------
 	/*

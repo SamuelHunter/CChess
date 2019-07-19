@@ -162,24 +162,50 @@ void Game::save() const {
 }
 
 bool Game::load() {
-	char load;
-	std::cout << "Confirm: y/n\t";
-	std::cin >> load;
-	std::cin.ignore();
-	if (load == 'y') {
-		std::string filename;
-		std::cout << "Enter filename to load (no extension): ";
-		std::getline(std::cin, filename);
-		filename += ".json";
-		std::ifstream ifs(filename);
-		json file = json::parse(ifs);
-		reset();
-		//TODO: handle json to moves
+	std::string filename;
+	std::cout << "Enter filename to load (no extension): ";
+	std::getline(std::cin, filename);
+	filename += ".json";
+	std::ifstream ifs(filename);
+	json file = json::parse(ifs);
+	reset();
+	//streamlined version of move()
+	try {
+		for (int i = 0; i < file["round"].size(); ++i) {	//rounds
+			Round r;
+			for (const auto& m : file["round"][std::to_string(i)]["white_turn"]) {	//moves
+				m_board.validateCurrent(m[0], m_turn);
+				m_board.validateFuture(m[1], m_turn);
+				if (m_board.attemptMove(m[0], m[1])) {
+					//no need to check turn
+					r.white_turn.push_back({ m[0], m[1] });
+					m_turn = BLACK;
+				}
+			}
+			for (const auto& m : file["round"][std::to_string(i)]["black_turn"]) {
+				m_board.validateCurrent(m[0], m_turn);
+				m_board.validateFuture(m[1], m_turn);
+				if (m_board.attemptMove(m[0], m[1])) {
+					//no need to check turn
+					r.black_turn.push_back({ m[0], m[1] });
+					m_history.push_back(r);
+					m_turn = WHITE;	//new round begins
+				}
+			}
+		}
+		return true;	//success!
+	} catch (const std::invalid_argument& e) {
+		std::cout << e.what() << std::endl;
+		std::cout << "History contains invalid move(s). Game will be returned to previous state." << std::endl;
+		return false;
 	}
-	return false;	//cancelled
 }
 
 void Game::reset() {
+	char reset;
+	std::cout << "Confirm: y/n\t";
+	std::cin >> reset;
+	std::cin.ignore();
 	m_board.resetBoard();
 	m_turn = FIRST_TURN;
 	m_history.clear();
