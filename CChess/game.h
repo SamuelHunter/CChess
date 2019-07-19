@@ -36,16 +36,34 @@ public:
 
 
 	/*
+		prints history to standard output
+	*/
+	void history() const;
+
+
+	/*
 		saves game history to file
 	*/
 	void save() const;
 
+	/*
+		@return		true if moves in file are valid and loaded, false otherwise
+
+		loads game history file and inputs moves
+	*/
+	bool load();
+
+	/*
+		resets game conditions to start
+	*/
+	void reset();
 
 	/*
 		@return		true if quit is confirmed
 	*/
 	bool quit();
 private:
+
 	//Member variables
 	//----------------
 	/*

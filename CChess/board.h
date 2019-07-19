@@ -10,9 +10,16 @@
 class Board {
 public:
 	/*
-		copies initial_board from constants.h to m_board
+		calls resetBoard
 	*/
 	Board();
+
+
+	/*
+		replaces current state of m_board with initial_board from constants.h
+		all PieceLib public functions are const, so no need to reset m_plib
+	*/
+	void resetBoard();
 
 	/*
 		@param		current		position of piece before moving

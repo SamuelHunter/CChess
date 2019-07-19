@@ -5,6 +5,10 @@
 // Public
 // ------
 Board::Board() : m_plib() {
+	resetBoard();
+}
+
+void Board::resetBoard() {
 	//copy init
 	for (int i = 0; i < BOARD_SIZE; ++i) {
 		for (int j = 0; j < BOARD_SIZE; ++j) {

@@ -8,6 +8,7 @@ enum Side {
 	WHITE = 0,
 	BLACK = 1
 };
+const int FIRST_TURN = WHITE;
 /*
 	@param		piece		char of piece
 

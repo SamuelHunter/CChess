@@ -7,7 +7,7 @@
 
 
 Game::Game()
-	:m_board(), m_turn(WHITE) {
+	:m_board(), m_turn(FIRST_TURN), m_history() {
 }
 
 void Game::play() {
@@ -16,7 +16,7 @@ void Game::play() {
 	while (!gameOver) {			//game has no checkmate yet
 		m_board.print();
 		char cmd;
-		std::cout << std::endl << "[m]ove\t[s]ave\t[q]uit" << std::endl;
+		std::cout << std::endl << "[m]ove  [h]istory  [s]ave  [l]oad  [r]eset  [q]uit" << std::endl;
 		while (1) {	//retry until valid command
 			try {
 				std::cout << "Command:\t";
@@ -26,8 +26,17 @@ void Game::play() {
 				case 'm':
 					move(this_round);
 					break;
+				case 'h':
+					history();
+					break;
 				case 's':
 					save();
+					break;
+				case 'l':
+					load();
+					break;
+				case 'r':
+					reset();
 					break;
 				case 'q':
 					if (quit()) gameOver = true;
@@ -85,12 +94,11 @@ void Game::move(Round& r) {
 			std::getline(std::cin, future);
 			m_board.validateFuture(future, m_turn);		//check if future is feasible
 			if (m_board.attemptMove(current, future)) {	//check if future is legal; if no exception thrown, turn is over
-				std::vector<std::string> move = { current, future };
 				if (m_turn == WHITE) {
-					r.white_turn.push_back(move);
+					r.white_turn.push_back({ current, future });
 					m_turn = BLACK;
 				} else if (m_turn == BLACK) {
-					r.black_turn.push_back(move);
+					r.black_turn.push_back({ current, future });
 					m_history.push_back(r);	//white went first, so white turn is over, but so is black's at this point
 					r = {};			//reset
 					m_turn = WHITE;	//new round begins
@@ -103,6 +111,27 @@ void Game::move(Round& r) {
 	}
 }
 
+void Game::history() const {
+	std::cout << "------------------------" << std::endl;
+	if (!m_history.size()) {
+		std::cout << "No history!" << std::endl;
+	} else {
+		std::cout << "Round\tWhite\tBlack" << std::endl;
+		for (int i = 0; i < m_history.size(); ++i) {
+			std::cout << i << '\t';
+			for (auto& m : m_history[i].white_turn) {
+				std::cout << m[0] << '-' << m[1] << ' ';
+			}
+			std::cout << '\t';
+			for (auto& m : m_history[i].black_turn) {
+				std::cout << m[0] << '-' << m[1] << ' ';
+			}
+			std::cout << std::endl;
+		}
+	}
+	std::cout << "------------------------" << std::endl;
+}
+
 void Game::save() const {
 	std::string filename;
 	std::cout << "Enter filename to be saved (no extension): ";
@@ -112,23 +141,48 @@ void Game::save() const {
 	std::ofstream ofs(filename);
 	if (ofs.is_open()) {
 		json j;
+		//store moves in turns in rounds
+		for (int i = 0; i < m_history.size(); ++i) {
+			j["round"][std::to_string(i)]["black_turn"] = m_history[i].black_turn;
+			j["round"][std::to_string(i)]["white_turn"] = m_history[i].white_turn;
+		}
 		//store time
 		std::stringstream ss;
 		auto t = std::time(nullptr);
 		auto tm = *std::localtime(&t);
 		ss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
 		j["time"] = ss.str();
-		//store moves in turns in rounds
-		for (int i = 0; i < m_history.size(); ++i) {
-			j["round"][std::to_string(i)]["white_turn"] = m_history[i].white_turn;
-			j["round"][std::to_string(i)]["black_turn"] = m_history[i].black_turn;
-		}
+		//write file
 		ofs << std::setw(2) << j << std::endl;
 		ofs.close();
 		std::cout << "Game saved as " << filename << std::endl;
 	} else {
-		std::cout << "Error creating file! Save failed" << std::endl;
+		std::cout << "Error creating file! Save failed." << std::endl;
 	}
+}
+
+bool Game::load() {
+	char load;
+	std::cout << "Confirm: y/n\t";
+	std::cin >> load;
+	std::cin.ignore();
+	if (load == 'y') {
+		std::string filename;
+		std::cout << "Enter filename to load (no extension): ";
+		std::getline(std::cin, filename);
+		filename += ".json";
+		std::ifstream ifs(filename);
+		json file = json::parse(ifs);
+		reset();
+		//TODO: handle json to moves
+	}
+	return false;	//cancelled
+}
+
+void Game::reset() {
+	m_board.resetBoard();
+	m_turn = FIRST_TURN;
+	m_history.clear();
 }
 
 bool Game::quit() {
