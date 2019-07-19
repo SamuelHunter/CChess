@@ -1,9 +1,12 @@
 Todo
 	-add listCaptures with minimal code redundancy, using isEnemy
-	initial moves (pawn)
 	-exception handling: invalid origin -> listall -> pieceAt out of bounds
 	-turns
-	external log, undo
+	-external log
+	undo
+	initial moves (pawn)
+	checkmate
+	add to json
 
 Rule changes
 	No castling, pawn promotion, single move turn only, en passant
