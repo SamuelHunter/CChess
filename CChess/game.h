@@ -4,13 +4,15 @@
 #include "board.h"
 #include <deque>
 
+
 /*
 	every round starts with a White turn and ends with a Black turn,
-	regardless of how many moves occur
+	regardless of how many moves (2 element vector of strings: from, to) occur
 */
 struct Round {
-	std::string white_turn;
-	std::string black_turn;
+	
+	std::vector<std::vector<std::string>> white_turn;
+	std::vector<std::vector<std::string>> black_turn;
 };
 
 class Game {
@@ -28,19 +30,15 @@ public:
 	
 
 	/*
-		@return		true when move is correctly executed
-
 		enter moves and store in history
 	*/
-	bool move(Round& r);
+	void move(Round& r);
 
 
 	/*
-		@return		true when save is successful
-
 		saves game history to file
 	*/
-	bool save() const;
+	void save() const;
 
 
 	/*

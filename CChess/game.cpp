@@ -1,5 +1,6 @@
 #include <iostream>		//std::cout
 #include <fstream>		//std::ofstream
+#include <sstream>		//std::stringstream
 #include <iomanip>		//std::put_time
 #include <ctime>		//std::time_t
 #include "game.h"
@@ -15,33 +16,39 @@ void Game::play() {
 	while (!gameOver) {			//game has no checkmate yet
 		m_board.print();
 		char cmd;
-		bool done = false;	//can save and quit, even after checkmate
-		while (!done) {
-			std::cout << std::endl << "[m]ove\t[s]ave\t[q]uit" << std::endl << "Command:\t";
-			std::cin >> cmd;
-			std::cin.ignore();	//flush whitespace
-			switch (cmd) {
-			case 'm':
-				done = move(this_round);
+		std::cout << std::endl << "[m]ove\t[s]ave\t[q]uit" << std::endl;
+		while (1) {	//retry until valid command
+			try {
+				std::cout << "Command:\t";
+				std::cin >> cmd;
+				std::cin.ignore();	//flush whitespace
+				switch (cmd) {
+				case 'm':
+					move(this_round);
+					break;
+				case 's':
+					save();
+					break;
+				case 'q':
+					if (quit()) gameOver = true;
+					break;
+				default:
+					throw std::invalid_argument("Unrecognized command. Try again.");
+				}
+				std::cout << std::endl << "Press ENTER to continue... ";
+				std::cin.get();			//wait
+				std::cout << "\033c";	//clear console for windows/linux
 				break;
-			case 's':
-				done = save();
-				break;
-			case 'q':
-				if (quit())	done = gameOver = true;
-				break;
-			default:
-				std::cout << "Unrecognized command. Try again." << std::endl;	//not done
+			} catch (std::invalid_argument& e) {
+				std::cout << e.what() << std::endl;
 			}
-			std::cout << std::endl << "Press ENTER to continue... ";
-			std::cin.get();			//wait
-			std::cout << "\033c";	//clear console for windows/linux
 		}
+
 	}
 	std::cout << "Thanks for playing!" << std::endl;
 }
 
-bool Game::move(Round& r) {
+void Game::move(Round& r) {
 	if (m_turn == WHITE) {
 		std::cout << std::endl << "White's turn (uppercase)";
 	} else if (m_turn == BLACK) {
@@ -78,11 +85,12 @@ bool Game::move(Round& r) {
 			std::getline(std::cin, future);
 			m_board.validateFuture(future, m_turn);		//check if future is feasible
 			if (m_board.attemptMove(current, future)) {	//check if future is legal; if no exception thrown, turn is over
+				std::vector<std::string> move = { current, future };
 				if (m_turn == WHITE) {
-					r.white_turn += current + '-' + future;
+					r.white_turn.push_back(move);
 					m_turn = BLACK;
 				} else if (m_turn == BLACK) {
-					r.black_turn += current + '-' + future;
+					r.black_turn.push_back(move);
 					m_history.push_back(r);	//white went first, so white turn is over, but so is black's at this point
 					r = {};			//reset
 					m_turn = WHITE;	//new round begins
@@ -93,35 +101,34 @@ bool Game::move(Round& r) {
 			std::cout << e.what() << std::endl;
 		}
 	}
-	return true;
 }
 
-bool Game::save() const {
+void Game::save() const {
 	std::string filename;
 	std::cout << "Enter filename to be saved (no extension): ";
 	std::getline(std::cin, filename);
-	filename += ".dat";
+	filename += ".json";
 
 	std::ofstream ofs(filename);
 	if (ofs.is_open()) {
-		//write time
+		json j;
+		//store time
+		std::stringstream ss;
 		auto t = std::time(nullptr);
 		auto tm = *std::localtime(&t);
-		ofs << "[CChess] saved at: " << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
-
-		//write moves
-		for (Round r : m_history) {
-			ofs << "\n" << r.white_turn.c_str() <<
-					" | " << r.black_turn.c_str();	//c strings for binary .dat
+		ss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
+		j["time"] = ss.str();
+		//store moves in turns in rounds
+		for (int i = 0; i < m_history.size(); ++i) {
+			j["round"][std::to_string(i)]["white_turn"] = m_history[i].white_turn;
+			j["round"][std::to_string(i)]["black_turn"] = m_history[i].black_turn;
 		}
-
+		ofs << std::setw(2) << j << std::endl;
 		ofs.close();
 		std::cout << "Game saved as " << filename << std::endl;
 	} else {
 		std::cout << "Error creating file! Save failed" << std::endl;
 	}
-
-	return true;
 }
 
 bool Game::quit() {
