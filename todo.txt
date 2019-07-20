@@ -3,6 +3,7 @@ Todo
 	-exception handling: invalid origin -> listall -> pieceAt out of bounds
 	-turns
 	-external log
+	fix history only being written after black turn, not white
 	undo
 	initial moves (pawn)
 	checkmate

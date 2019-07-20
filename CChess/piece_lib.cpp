@@ -26,7 +26,12 @@ const std::string PieceLib::getName(const char& piece, bool capitalization) cons
 }
 
 const std::vector<std::vector<int>> PieceLib::getOffsets(const char & piece, const std::string& offsetKey) const {
-	return getRules(piece)[offsetKey].get<std::vector<std::vector<int>>>();
+	if (getRules(piece)[offsetKey].is_string()) {	//e.g. capture is the same as "move" rather than an explicit array
+		//forgive my syntax, for i have sinned
+		return getRules(piece)[getRules(piece)[offsetKey].get<std::string>()].get<std::vector<std::vector<int>>>();
+	} else {
+		return getRules(piece)[offsetKey].get<std::vector<std::vector<int>>>();
+	}
 }
 
 // Private

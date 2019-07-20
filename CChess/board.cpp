@@ -12,7 +12,7 @@ void Board::resetBoard() {
 	//copy init
 	for (int i = 0; i < BOARD_SIZE; ++i) {
 		for (int j = 0; j < BOARD_SIZE; ++j) {
-			m_board[i][j] = initial_board[i][j];
+			m_board[i][j] = m_initial_board[i][j];
 		}
 	}
 }
@@ -34,9 +34,15 @@ void Board::validateFuture(const std::string& future, const int & turn) const {
 }
 
 std::vector<std::string> Board::listMoves(const std::string& current) const {
-	//nothing other than isEmpty is an allowable intermediate
+	//no allowable intermediates
 	//maximum positions that can be travelled is 1 less than the board size
-	return listFuture(current, JSON_MOVE_ARRAY, &Board::isEmpty, &Board::isEmpty, BOARD_SIZE - 1);
+	std::vector<std::string> combinedMoves = listFuture(current, JSON_MOVE_ARRAY, &Board::isEmpty, &Board::rejectAll, BOARD_SIZE - 1);
+	if (isInitial(current)) {	//add any additional initial moves
+		for (const std::string& initial : listFuture(current, JSON_INITIAL_ARRAY, &Board::isEmpty, &Board::rejectAll, BOARD_SIZE - 1)) {
+			combinedMoves.push_back(initial);
+		}
+	}
+	return combinedMoves;
 }
 
 std::vector<std::string> Board::listCaptures(const std::string& current) const {
@@ -46,9 +52,7 @@ std::vector<std::string> Board::listCaptures(const std::string& current) const {
 
 bool Board::attemptMove(const std::string& current, const std::string& future) {
 	if (isLegal(current, future, &Board::listMoves)) {
-		std::string pieceName = m_plib.getName(pieceAt(current));
-		
-		std::cout << "> " << pieceName << " moved from " << current << " to " << future << "." << std::endl;
+		std::cout << "> " << m_plib.getName(pieceAt(current)) << " moved from " << current << " to " << future << "." << std::endl;
 		setPiece(future, pieceAt(current));
 		setPiece(current, EMPTY);
 		return true;	//single turn over; TODO: count down multiple turns
@@ -91,6 +95,10 @@ const char& Board::pieceAt(const std::string& pos) const {
 	return m_board[pos[1] - FIRST_ROW][pos[0] - FIRST_COL];
 }
 
+const char & Board::pieceInitiallyAt(const std::string & pos) const {
+	return m_initial_board[pos[1] - FIRST_ROW][pos[0] - FIRST_COL];
+}
+
 void Board::setPiece(const std::string& pos, const char& replacement) {
 	m_board[pos[1] - FIRST_ROW][pos[0] - FIRST_COL] = replacement;
 }
@@ -111,6 +119,14 @@ bool Board::onBoard(const std::string& pos) const {
 		pos[1] >= FIRST_ROW && pos[1] < char(FIRST_ROW + BOARD_SIZE));
 }
 
+bool Board::acceptAll(const std::string & dummy1, const std::string & dummy2) const {
+	return true;
+}
+
+bool Board::rejectAll(const std::string & dummy1, const std::string & dummy2) const {
+	return false;
+}
+
 bool Board::isEmpty(const std::string& pos, const std::string& dummy) const {
 	return pieceAt(pos) == EMPTY;
 }
@@ -119,7 +135,11 @@ bool Board::isEnemy(const std::string& otherPos, const std::string& pos) const {
 	return ((pieceAt(otherPos) != EMPTY) && (whichSide(pieceAt(otherPos)) != whichSide(pieceAt(pos))));
 }
 
-std::vector<std::string> Board::listFuture(const std::string& current, const std::string& offsetKey, restrictionFxn reqf, restrictionFxn passf, const int& maxDepth) const {
+bool Board::isInitial(const std::string& pos, const std::string& dummy) const {
+	return (pieceAt(pos) == pieceInitiallyAt(pos));
+}
+
+std::vector<std::string> Board::listFuture(const std::string& current, const std::string& offsetKey, restrictionFxn reqf, restrictionFxn passf, const int& maxReq) const {
 	std::vector<std::string> future;
 
 	// Identify piece char from json
@@ -136,7 +156,7 @@ std::vector<std::string> Board::listFuture(const std::string& current, const std
 		std::string next = offset(current, o, side);
 		if (o.size() == JSON_RANGE_INDEX + 1 && o[JSON_RANGE_INDEX] == JSON_RANGE_INFINITE) {
 			//infinite offset, with up to d nexts satisfying rf
-			for (int d = maxDepth; (d > 0 && onBoard(next)); next = offset(next, o, side)) {
+			for (int d = maxReq; (d > 0 && onBoard(next)); next = offset(next, o, side)) {
 				//next meets restriction and belongs to future
 				if ((this->*reqf)(next, current)) {		//member function pointer syntax
 					future.push_back(next);

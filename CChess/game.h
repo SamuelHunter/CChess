@@ -22,30 +22,25 @@ public:
 	*/
 	Game();
 
-
 	/*
 		loop of move, save, quit
 	*/
 	void play();
 	
-
 	/*
 		enter moves and store in history
 	*/
-	void move(Round& r);
-
+	void move();
 
 	/*
 		prints history to standard output
 	*/
 	void history() const;
 
-
 	/*
 		saves game history to file
 	*/
 	void save() const;
-
 
 	/*
 		@return		true if moves in file are valid and loaded, false otherwise
@@ -54,12 +49,10 @@ public:
 	*/
 	bool load();
 
-
 	/*
 		resets game conditions to start
 	*/
 	void reset();
-
 
 	/*
 		@return		true if quit is confirmed
@@ -67,6 +60,14 @@ public:
 	bool quit();
 
 private:
+	/*
+		@param		current		position chosen to move/capture from
+
+		prints all available moves from current
+		throws exception if none exist and another current must be chosen
+	*/
+	void listAvailable(const std::string& current) const;
+
 	//Member variables
 	//----------------
 	/*
