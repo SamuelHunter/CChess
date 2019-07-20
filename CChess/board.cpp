@@ -9,10 +9,10 @@ Board::Board() : m_plib() {
 }
 
 void Board::reset() {
-	//copy init
 	for (int i = 0; i < BOARD_SIZE; ++i) {
 		for (int j = 0; j < BOARD_SIZE; ++j) {
-			m_board[i][j] = m_initial_board[i][j];
+			m_board[i][j] = initial_board[i][j];	//copy initial to board
+			m_neverMoved[i][j] = (initial_board[i][j] != EMPTY);	//reset neverMoved; only positions with pieces are eligible
 		}
 	}
 }
@@ -37,7 +37,7 @@ std::vector<std::string> Board::listMoves(const std::string& current) const {
 	//no allowable intermediates
 	//maximum positions that can be travelled is 1 less than the board size
 	std::vector<std::string> combinedMoves = listFuture(current, JSON_MOVE_ARRAY, &Board::isEmpty, &Board::rejectAll, BOARD_SIZE - 1);
-	if (isInitial(current)) {	//add any additional initial moves
+	if (neverMovedAt(current)) {	//add any additional initial moves
 		for (const std::string& initial : listFuture(current, JSON_INITIAL_ARRAY, &Board::isEmpty, &Board::rejectAll, BOARD_SIZE - 1)) {
 			combinedMoves.push_back(initial);
 		}
@@ -55,12 +55,16 @@ bool Board::attemptMove(const std::string& current, const std::string& future) {
 		std::cout << "> " << m_plib.getName(pieceAt(current)) << " moved from " << current << " to " << future << "." << std::endl;
 		setPiece(future, pieceAt(current));
 		setPiece(current, EMPTY);
+		setNeverMovedAt(current, false);	//no initial move can be made from current or future
+		setNeverMovedAt(future, false);
 		return true;	//single turn over; TODO: count down multiple turns
 	} else if (isLegal(current, future, &Board::listCaptures)) {
 		std::cout << "> " << m_plib.getName(pieceAt(current)) << " at " << current << " captured "
 			<< m_plib.getName(pieceAt(future)) << " at " << future << std::endl;
 		setPiece(future, pieceAt(current));
 		setPiece(current, EMPTY);
+		setNeverMovedAt(current, false);
+		setNeverMovedAt(future, false);
 		return true;
 	} else {
 		throw std::invalid_argument("Illegal move. Try again.");
@@ -72,6 +76,7 @@ void Board::print() const {
 	for (int i = BOARD_SIZE - 1; i >= 0; --i) {	//reverse order so row 1 prints last
 		std::cout << char(i + FIRST_ROW) << " | ";	//row label
 		for (int j = 0; j < BOARD_SIZE; ++j) {
+			//can substitute with m_neverMoved to check if initial moves are allowed when appropriate
 			std::cout << m_board[i][j];
 			if (j == BOARD_SIZE - 1)
 				std::cout << " |" << std::endl;
@@ -95,12 +100,16 @@ const char& Board::pieceAt(const std::string& pos) const {
 	return m_board[pos[1] - FIRST_ROW][pos[0] - FIRST_COL];
 }
 
-const char & Board::pieceInitiallyAt(const std::string & pos) const {
-	return m_initial_board[pos[1] - FIRST_ROW][pos[0] - FIRST_COL];
-}
-
 void Board::setPiece(const std::string& pos, const char& replacement) {
 	m_board[pos[1] - FIRST_ROW][pos[0] - FIRST_COL] = replacement;
+}
+
+const bool& Board::neverMovedAt(const std::string& pos) const {
+	return m_neverMoved[pos[1] - FIRST_ROW][pos[0] - FIRST_COL];
+}
+
+void Board::setNeverMovedAt(const std::string& pos, const bool& replacement) {
+	m_neverMoved[pos[1] - FIRST_ROW][pos[0] - FIRST_COL] = replacement;
 }
 
 const std::string Board::offset(const std::string& pos, const std::vector<int>& offset, const int& side) const {
@@ -133,10 +142,6 @@ bool Board::isEmpty(const std::string& pos, const std::string& dummy) const {
 
 bool Board::isEnemy(const std::string& otherPos, const std::string& pos) const {
 	return ((pieceAt(otherPos) != EMPTY) && (whichSide(pieceAt(otherPos)) != whichSide(pieceAt(pos))));
-}
-
-bool Board::isInitial(const std::string& pos, const std::string& dummy) const {
-	return (pieceAt(pos) == pieceInitiallyAt(pos));
 }
 
 std::vector<std::string> Board::listFuture(const std::string& current, const std::string& offsetKey, restrictionFxn reqf, restrictionFxn passf, const int& maxReq) const {

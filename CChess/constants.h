@@ -32,5 +32,16 @@ const int BOARD_SIZE = 8;
 const char FIRST_ROW = '1';
 const char FIRST_COL = 'a';
 const char EMPTY = ' ';
+const char initial_board[BOARD_SIZE][BOARD_SIZE] = {
+	// [0][0] = a1
+	{ 'R',  'N',  'B',  'Q',  'K',  'B',  'N',  'R' },
+	{ 'P',  'P',  'P',  'P',  'P',  'P',  'P',  'P' },
+	{ ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ' },
+	{ ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ' },
+	{ ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ' },
+	{ ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ' },
+	{ 'p',  'p',  'p',  'p',  'p',  'p',  'p',  'p' },
+	{ 'r',  'n',  'b',  'q',  'k',  'b',  'n',  'r' },
+};
 
 #endif CONSTANTS_H

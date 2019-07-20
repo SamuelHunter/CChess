@@ -71,22 +71,28 @@ private:
 	/*
 		@param		pos			position of a piece
 
-		@return					char of piece at pos, cannot be modified: check constants.h
+		@return		char of piece at pos, cannot be modified: check constants.h
 	*/
 	const char& pieceAt(const std::string& pos) const;
-
-	/*
-		@param		pos			position of a piece
-
-		@return					char of piece initially at pos, cannot be modified: check constants.h
-	*/
-	const char& pieceInitiallyAt(const std::string& pos) const;
 
 	/*
 		@param		pos			position of a piece
 		@param		replacement	new char of piece
 	*/
 	void setPiece(const std::string& pos, const char& replacement);
+
+	/*
+		@param		pos			position
+
+		@return		bool of pos according to m_neverMoved, cannot be modified
+	*/
+	const bool& neverMovedAt(const std::string& pos) const;
+
+	/*
+		@param		pos			position
+		@param		replacement	new bool at pos
+	*/
+	void setNeverMovedAt(const std::string& pos, const bool& replacement);
 
 	/*
 		@param		pos			position (in algebraic notation) to offset from
@@ -122,14 +128,6 @@ private:
 		@return		false always
 	*/
 	bool rejectAll(const std::string& dummy1 = "", const std::string& dummy2 = "") const;
-
-	/*
-		@param		pos			position in question
-		@param		dummy		dummy argument to fit restrictionFxn typedef; see listFuture
-
-		@return		true if pos has a piece that was never moved from its initial position
-	*/
-	bool isInitial(const std::string& pos, const std::string& dummy = "") const;
 
 	/*
 		@param		pos			position in question
@@ -174,24 +172,14 @@ private:
 	// Member variables
 	// ----------------
 	/*
-		array of pieces at start of play
-	*/
-	const char m_initial_board[BOARD_SIZE][BOARD_SIZE] = {
-		// [0][0] = a1
-		{ 'R',  'N',  'B',  'Q',  'K',  'B',  'N',  'R' },
-		{ 'P',  'P',  'P',  'P',  'P',  'P',  'P',  'P' },
-		{ ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ' },
-		{ ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ' },
-		{ ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ' },
-		{ ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ' },
-		{ 'p',  'p',  'p',  'p',  'p',  'p',  'p',  'p' },
-		{ 'r',  'n',  'b',  'q',  'k',  'b',  'n',  'r' },
-	};
-
-	/*
 		array of pieces currently in play using abbreviations from pieces.json
 	*/
 	char m_board[BOARD_SIZE][BOARD_SIZE];
+
+	/*
+		array of positions where a move has never been played from/to
+	*/
+	bool m_neverMoved[BOARD_SIZE][BOARD_SIZE];
 
 	/*
 		library of piece rules
