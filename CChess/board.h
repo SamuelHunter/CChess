@@ -10,7 +10,7 @@
 class Board {
 public:
 	/*
-		calls resetBoard
+		calls reset()
 	*/
 	Board();
 
@@ -18,7 +18,7 @@ public:
 		replaces current state of m_board with initial_board from constants.h
 		all PieceLib public functions are const, so no need to reset m_plib
 	*/
-	void resetBoard();
+	void reset();
 
 	/*
 		@param		current		position of piece before moving

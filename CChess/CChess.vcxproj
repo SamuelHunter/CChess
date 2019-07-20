@@ -126,6 +126,7 @@
   <ItemGroup>
     <ClCompile Include="board.cpp" />
     <ClCompile Include="game.cpp" />
+    <ClCompile Include="history.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="piece_lib.cpp" />
   </ItemGroup>
@@ -133,6 +134,7 @@
     <ClInclude Include="board.h" />
     <ClInclude Include="constants.h" />
     <ClInclude Include="game.h" />
+    <ClInclude Include="history.h" />
     <ClInclude Include="piece_lib.h" />
   </ItemGroup>
   <ItemGroup>

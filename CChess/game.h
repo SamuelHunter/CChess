@@ -2,18 +2,8 @@
 #define GAME_H
 
 #include "board.h"
-#include <deque>
+#include "history.h"
 
-
-/*
-	every round starts with a White turn and ends with a Black turn,
-	regardless of how many moves (2 element vector of strings: from, to) occur
-*/
-struct Round {
-	
-	std::vector<std::vector<std::string>> white_turn;
-	std::vector<std::vector<std::string>> black_turn;
-};
 
 class Game {
 public:
@@ -31,11 +21,6 @@ public:
 		enter moves and store in history
 	*/
 	void move();
-
-	/*
-		prints history to standard output
-	*/
-	void history() const;
 
 	/*
 		saves game history to file
@@ -81,9 +66,9 @@ private:
 	int m_turn;
 
 	/*
-		history of moves, stored in Rounds
+		history of rounds/turns/moves
 	*/
-	std::deque<Round> m_history;
+	History m_history;
 };
 
 #endif GAME_H

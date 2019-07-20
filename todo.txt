@@ -3,11 +3,11 @@ Todo
 	-exception handling: invalid origin -> listall -> pieceAt out of bounds
 	-turns
 	-external log
-	fix history only being written after black turn, not white
+	-fix history only being written after black turn, not white
+	-initial moves (pawn)
 	undo
-	initial moves (pawn)
 	checkmate
-	add to json
+	add more pieces to json
 
 Rule changes
 	No castling, pawn promotion, single move turn only, en passant

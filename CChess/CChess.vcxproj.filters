@@ -27,6 +27,9 @@
     <ClCompile Include="piece_lib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="history.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="board.h">
@@ -39,6 +42,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="piece_lib.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="history.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

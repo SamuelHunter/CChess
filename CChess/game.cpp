@@ -8,8 +8,6 @@
 
 Game::Game()
 	:m_board(), m_turn(FIRST_TURN), m_history() {
-	Round firstRound;		//in future rounds, the end of black's turn will push_back a new Round
-	m_history.push_back(firstRound);
 }
 
 void Game::play() {
@@ -28,13 +26,13 @@ void Game::play() {
 					move();
 					break;
 				case 'h':
-					history();
+					m_history.print();
 					break;
 				case 's':
 					save();
 					break;
 				case 'l':
-					load();
+					if (!load()) reset();
 					break;
 				case 'r':
 					reset();
@@ -81,46 +79,24 @@ void Game::move() {
 			std::cout << std::endl << "Future:\t\t\t";
 			std::getline(std::cin, future);
 			m_board.validateFuture(future, m_turn);		//check if future is feasible
-			if (m_board.attemptMove(current, future)) {	//check if future is legal; if no exception thrown, turn is over
+			if (m_board.attemptMove(current, future)) {	//check if future is legal
+				//turn is over
 				if (m_turn == WHITE) {
-					m_history.back().white_turn.push_back({ current, future });
+					m_history.recordMove(m_turn, current, future);	//record before m_turn changes
 					m_turn = BLACK;
 				} else if (m_turn == BLACK) {
-					m_history.back().black_turn.push_back({ current, future });
-					m_history.push_back(Round());	//both turns have finished, so set up a record for next round
+					m_history.recordMove(m_turn, current, future, true);	//both turns have finished - last move of turn
 					m_turn = WHITE;	//new round begins
 				}
-			}//otherwise turn is not over and m_turn has not changed
+			} else {
+				//turn is not over and m_turn has not changed
+				m_history.recordMove(m_turn, current, future);
+			}
 			break;
 		} catch (const std::invalid_argument& e) {	//future invalid OR illegal move
 			std::cout << e.what() << std::endl;
 		}
 	}
-}
-
-void Game::history() const {
-	std::cout << "------------------------" << std::endl;
-	//history always has a firstRound, so instead check if filled
-	if (m_history[0].white_turn.empty() && m_history[0].black_turn.empty()) {
-		std::cout << "No history!" << std::endl;
-	} else {
-		std::cout << "Round\tWhite\tBlack" << std::endl;
-		for (int i = 0; i < m_history.size(); ++i) {
-			//ignore unfilled round from right before a new white turn
-			if (!m_history[i].white_turn.empty() || !m_history[i].black_turn.empty()) {
-				std::cout << i << '\t';
-				for (auto& m : m_history[i].white_turn) {
-					std::cout << m[0] << '-' << m[1] << ' ';
-				}
-				std::cout << '\t';
-				for (auto& m : m_history[i].black_turn) {
-					std::cout << m[0] << '-' << m[1] << ' ';
-				}
-				std::cout << std::endl;
-			}
-		}
-	}
-	std::cout << "------------------------" << std::endl;
 }
 
 void Game::save() const {
@@ -133,13 +109,7 @@ void Game::save() const {
 	if (ofs.is_open()) {
 		json j;
 		//store moves in turns in rounds
-		for (int i = 0; i < m_history.size(); ++i) {
-			//ignore unfilled round from right before a new white turn
-			if (!m_history[i].white_turn.empty() || !m_history[i].black_turn.empty()) {
-				j["round"][std::to_string(i)]["white_turn"] = m_history[i].white_turn;
-				j["round"][std::to_string(i)]["black_turn"] = m_history[i].black_turn;
-			}
-		}
+		m_history.toJson(j);
 		//store time
 		std::stringstream ss;
 		auto t = std::time(nullptr);
@@ -171,8 +141,11 @@ bool Game::load() {
 				m_board.validateFuture(m[1], m_turn);
 				if (m_board.attemptMove(m[0], m[1])) {
 					//no need to check turn
-					m_history.back().white_turn.push_back({ m[0], m[1] });
+					m_history.recordMove(m_turn, m[0], m[1]);	//record before m_turn changes
 					m_turn = BLACK;
+				} else {
+					//turn is not over and m_turn has not changed
+					m_history.recordMove(m_turn, m[0], m[1]);
 				}
 			}
 			for (const auto& m : file["round"][std::to_string(i)]["black_turn"]) {
@@ -180,16 +153,18 @@ bool Game::load() {
 				m_board.validateFuture(m[1], m_turn);
 				if (m_board.attemptMove(m[0], m[1])) {
 					//no need to check turn
-					m_history.back().black_turn.push_back({ m[0], m[1] });
-					m_history.push_back(Round());	//both turns have finished, so set up a record for next round
+					m_history.recordMove(m_turn, m[0], m[1], true);	//both turns have finished - last move of turn
 					m_turn = WHITE;	//new round begins
+				} else {
+					//turn is not over and m_turn has not changed
+					m_history.recordMove(m_turn, m[0], m[1]);
 				}
 			}
 		}
 		return true;	//success!
 	} catch (const std::invalid_argument& e) {
 		std::cout << e.what() << std::endl;
-		std::cout << "History contains invalid move(s). Game will be returned to previous state." << std::endl;
+		std::cout << "History contains invalid move(s). Game will be reset." << std::endl;	//TODO:resotre to previous state using copy constructors
 		return false;
 	}
 }
@@ -200,11 +175,9 @@ void Game::reset() {
 	std::cin >> reset;
 	std::cin.ignore();
 	//match constructor
-	m_board.resetBoard();
+	m_board.reset();
 	m_turn = FIRST_TURN;
-	m_history.clear();
-	Round firstRound;
-	m_history.push_back(firstRound);
+	m_history.reset();
 }
 
 bool Game::quit() {
