@@ -1,8 +1,5 @@
-#include <iostream>		//std::cout
-#include <fstream>		//std::ofstream
-#include <sstream>		//std::stringstream
-#include <iomanip>		//std::put_time
-#include <ctime>		//std::time_t
+#include <iostream>		// std::cout
+#include <fstream>		// std::ofstream
 #include "game.h"
 
 
@@ -12,7 +9,7 @@ Game::Game()
 
 void Game::play() {
 	bool gameOver = false;
-	while (!gameOver) {			//game has no checkmate yet
+	while (!gameOver) {			//TODO:checkmate
 		m_board.print();
 		char cmd;
 		std::cout << std::endl << "[m]ove  [h]istory  [s]ave  [l]oad  [r]eset  [q]uit" << std::endl;
@@ -29,16 +26,16 @@ void Game::play() {
 					m_history.print();
 					break;
 				case 's':
-					save();
+					m_history.save();
 					break;
 				case 'l':
 					if (!load()) reset();
 					break;
 				case 'r':
-					reset();
+					if (confirm()) reset();
 					break;
 				case 'q':
-					if (quit()) gameOver = true;
+					if (confirm()) gameOver = true;
 					break;
 				default:
 					throw std::invalid_argument("Unrecognized command. Try again.");
@@ -99,38 +96,12 @@ void Game::move() {
 	}
 }
 
-void Game::save() const {
-	std::string filename;
-	std::cout << "Enter filename to be saved (no extension): ";
-	std::getline(std::cin, filename);
-	filename += ".json";
-
-	std::ofstream ofs(filename);
-	if (ofs.is_open()) {
-		json j;
-		//store moves in turns in rounds
-		m_history.toJson(j);
-		//store time
-		std::stringstream ss;
-		auto t = std::time(nullptr);
-		auto tm = *std::localtime(&t);
-		ss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
-		j["time"] = ss.str();
-		//write file
-		ofs << std::setw(2) << j << std::endl;
-		ofs.close();
-		std::cout << "Game saved as " << filename << std::endl;
-	} else {
-		std::cout << "Error creating file! Save failed." << std::endl;
-	}
-}
-
 bool Game::load() {
 	std::string filename;
 	std::cout << "Enter filename to load (no extension): ";
 	std::getline(std::cin, filename);
-	filename += ".json";
-	std::ifstream ifs(filename);
+	std::string path = SAVE_DIR + filename + JSON_EXT;
+	std::ifstream ifs(path);
 	json file = json::parse(ifs);
 	reset();
 	//streamlined version of move()
@@ -140,11 +111,9 @@ bool Game::load() {
 				m_board.validateCurrent(m[0], m_turn);
 				m_board.validateFuture(m[1], m_turn);
 				if (m_board.attemptMove(m[0], m[1])) {
-					//no need to check turn
-					m_history.recordMove(m_turn, m[0], m[1]);	//record before m_turn changes
+					m_history.recordMove(m_turn, m[0], m[1]);
 					m_turn = BLACK;
 				} else {
-					//turn is not over and m_turn has not changed
 					m_history.recordMove(m_turn, m[0], m[1]);
 				}
 			}
@@ -152,40 +121,35 @@ bool Game::load() {
 				m_board.validateCurrent(m[0], m_turn);
 				m_board.validateFuture(m[1], m_turn);
 				if (m_board.attemptMove(m[0], m[1])) {
-					//no need to check turn
-					m_history.recordMove(m_turn, m[0], m[1], true);	//both turns have finished - last move of turn
-					m_turn = WHITE;	//new round begins
+					m_history.recordMove(m_turn, m[0], m[1], true);
+					m_turn = WHITE;
 				} else {
-					//turn is not over and m_turn has not changed
 					m_history.recordMove(m_turn, m[0], m[1]);
 				}
 			}
 		}
-		return true;	//success!
+		std::cout << "Game successfully loaded from " << path << std::endl;
+		return true;
 	} catch (const std::invalid_argument& e) {
 		std::cout << e.what() << std::endl;
-		std::cout << "History contains invalid move(s). Game will be reset." << std::endl;	//TODO:resotre to previous state using copy constructors
+		std::cout << path << " contains invalid move(s). Game will be reset." << std::endl;	//TODO:resotre to previous state using copy constructors
 		return false;
 	}
 }
 
 void Game::reset() {
-	char reset;
-	std::cout << "Confirm: y/n\t";
-	std::cin >> reset;
-	std::cin.ignore();
-	//match constructor
+	//matches constructor
 	m_board.reset();
 	m_turn = FIRST_TURN;
 	m_history.reset();
 }
 
-bool Game::quit() {
-	char quit;
+bool Game::confirm() const {
+	char reset;
 	std::cout << "Confirm: y/n\t";
-	std::cin >> quit;
+	std::cin >> reset;
 	std::cin.ignore();
-	return (quit == 'y');
+	return (reset == 'y');
 }
 
 void Game::listAvailable(const std::string & current) const {

@@ -1,4 +1,9 @@
 #include <iostream>		// std::cout
+#include <fstream>		// std::ofstream
+#include <sstream>		// std::stringstream
+#include <iomanip>		// std::put_time
+#include <ctime>		// std::time_t
+
 #include "constants.h"
 #include "history.h"
 
@@ -29,7 +34,7 @@ void History::recordMove(const int& turn, const std::string& current, const std:
 
 void History::print() const {
 	std::cout << "------------------------" << std::endl;
-	//history always has a firstRound, so instead check if filled
+	//history always has a first Round, so instead check if filled
 	if (!m_roundCount) {
 		std::cout << "No history!" << std::endl;
 	} else {
@@ -49,9 +54,31 @@ void History::print() const {
 	std::cout << "------------------------" << std::endl;
 }
 
-void History::toJson(json& j) const {
-	for (int i = 0; i < m_roundCount; ++i) {
-		j["round"][std::to_string(i)]["white_turn"] = m_history[i].white_turn;
-		j["round"][std::to_string(i)]["black_turn"] = m_history[i].black_turn;
+void History::save() const {
+	std::string filename;
+	std::cout << "Enter filename to be saved (no extension): ";
+	std::getline(std::cin, filename);
+	std::string path = SAVE_DIR + filename + JSON_EXT;
+
+	std::ofstream ofs(path);
+	if (ofs.is_open()) {
+		json j;
+		//store moves in turns in rounds
+		for (int i = 0; i < m_roundCount; ++i) {
+			j["round"][std::to_string(i)]["white_turn"] = m_history[i].white_turn;
+			j["round"][std::to_string(i)]["black_turn"] = m_history[i].black_turn;
+		}
+		//store time
+		std::stringstream ss;
+		auto t = std::time(nullptr);
+		auto tm = *std::localtime(&t);
+		ss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
+		j["time"] = ss.str();
+		//write file
+		ofs << std::setw(2) << j << std::endl;
+		ofs.close();
+		std::cout << "Game saved as " << path << std::endl;
+	} else {
+		std::cout << "Error creating file! Save failed." << std::endl;
 	}
 }

@@ -7,7 +7,9 @@ Todo
 	-initial moves (pawn)
 	undo
 	checkmate
-	add more pieces to json
+	initial board from ruleset json (plib_default, initb_default)
+	add more pieces to pieces json
+	new game screen with rules selection
 
 Rule changes
 	No castling, pawn promotion, single move turn only, en passant

@@ -1,20 +1,20 @@
 #include <fstream>      // std::ifstream
-#include "piece_lib.h"
+#include "piece_library.h"
 
 // Public
 // ------
-PieceLib::PieceLib() {
-	//load pieces from json
-	std::ifstream ifs(PIECES_JSON);
+PieceLibrary::PieceLibrary() {
+	//load piece library from json
+	std::ifstream ifs(RULES_DIR + PIECES_LIBRARY + JSON_EXT);
 	m_library = json::parse(ifs);
 }
 
-bool PieceLib::contains(const char & piece) const {
+bool PieceLibrary::contains(const char & piece) const {
 	return !getRules(piece).empty();
 }
 
-const std::string PieceLib::getName(const char& piece, bool capitalization) const {
-	std::string name = getRules(piece)[JSON_NAME].get<std::string>();
+const std::string PieceLibrary::getName(const char& piece, bool capitalization) const {
+	std::string name = getRules(piece)[PIECE_NAME].get<std::string>();
 	if (capitalization) {
 		if (whichSide(piece) == WHITE) {
 			std::transform(name.begin(), name.end(), name.begin(), ::toupper);
@@ -25,7 +25,7 @@ const std::string PieceLib::getName(const char& piece, bool capitalization) cons
 	return name;
 }
 
-const std::vector<std::vector<int>> PieceLib::getOffsets(const char & piece, const std::string& offsetKey) const {
+const std::vector<std::vector<int>> PieceLibrary::getOffsets(const char & piece, const std::string& offsetKey) const {
 	if (getRules(piece)[offsetKey].is_string()) {	//e.g. capture is the same as "move" rather than an explicit array
 		//forgive my syntax, for i have sinned
 		return getRules(piece)[getRules(piece)[offsetKey].get<std::string>()].get<std::vector<std::vector<int>>>();
@@ -36,6 +36,6 @@ const std::vector<std::vector<int>> PieceLib::getOffsets(const char & piece, con
 
 // Private
 // -------
-const json& PieceLib::getRules(const char& piece) const {
+const json& PieceLibrary::getRules(const char& piece) const {
 	return m_library[std::string(1, toupper(piece))];
 }

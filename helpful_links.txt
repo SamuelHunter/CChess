@@ -7,6 +7,7 @@ https://stackoverflow.com/questions/44791928/pass-member-function-as-parameter-t
 https://developercommunity.visualstudio.com/content/problem/59100/c-brace-formatting-issues.html
 https://stackoverflow.com/questions/5755942/how-do-you-auto-format-code-in-visual-studio
 https://www.elated.com/json-basics/
+https://stackoverflow.com/questions/28977585/how-to-get-put-time-into-a-variable
 
 the chezz
 ---------

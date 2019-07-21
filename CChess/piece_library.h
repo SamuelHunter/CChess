@@ -1,5 +1,5 @@
-#ifndef PIECE_LIB_H
-#define PIECE_LIB_H
+#ifndef PIECE_LIBRARY_H
+#define PIECE_LIBRARY_H
 
 #include <string>
 #include <vector>
@@ -9,12 +9,12 @@
 using json = nlohmann::json;
 
 
-class PieceLib {
+class PieceLibrary {
 public:
 	/*
-		loads json where pieces are stored
+		@brief		loads json where pieces are stored
 	*/
-	PieceLib();
+	PieceLibrary();
 
 	/*
 		@param		piece		char of piece (case unimportant)
@@ -42,10 +42,12 @@ public:
 
 private:
 	/*
+		@brief		Used for all public functions to shorten syntax
+
+
 		@param		piece		char of piece
 
 		@return		json on rules pertaining to piece at pos (cannot be modified)
-		Used for all public functions to shorten syntax
 	*/
 	const json& getRules(const char& piece) const;
 
@@ -53,9 +55,9 @@ private:
 	// Member variables
 	// ----------------
 	/*
-	json loaded from file containing piece rules
+		@brief		json loaded from file containing piece rules
 	*/
 	json m_library;
 };
 
-#endif PIECE_LIB_H
+#endif PIECE_LIBRARY_H

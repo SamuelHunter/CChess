@@ -19,11 +19,16 @@ int inline whichSide(const char& piece) {
 }
 
 
-const std::string PIECES_JSON = "pieces.json";
-const std::string JSON_NAME = "name";
-const std::string JSON_INITIAL_ARRAY = "initial";
-const std::string JSON_MOVE_ARRAY = "move";
-const std::string JSON_CAPTURE_ARRAY = "capture";
+const std::string SAVE_DIR = "saves\\";
+const std::string RULES_DIR = "rules\\";
+const std::string PIECES_LIBRARY = "piece_library";
+const std::string INITIAL_BOARD = "initial_board";
+const std::string NORMAL_INITIAL_BOARD = "normal";
+const std::string JSON_EXT = ".json";
+const std::string PIECE_NAME = "name";
+const std::string PIECE_INITIAL_ARRAY = "initial";
+const std::string PIECE_MOVE_ARRAY = "move";
+const std::string PIECE_CAPTURE_ARRAY = "capture";
 const int JSON_RANGE_INDEX = 2;		//see note_on_pieces_json.txt
 const int JSON_RANGE_INFINITE = -1;
 
@@ -32,16 +37,5 @@ const int BOARD_SIZE = 8;
 const char FIRST_ROW = '1';
 const char FIRST_COL = 'a';
 const char EMPTY = ' ';
-const char initial_board[BOARD_SIZE][BOARD_SIZE] = {
-	// [0][0] = a1
-	{ 'R',  'N',  'B',  'Q',  'K',  'B',  'N',  'R' },
-	{ 'P',  'P',  'P',  'P',  'P',  'P',  'P',  'P' },
-	{ ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ' },
-	{ ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ' },
-	{ ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ' },
-	{ ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ',  ' ' },
-	{ 'p',  'p',  'p',  'p',  'p',  'p',  'p',  'p' },
-	{ 'r',  'n',  'b',  'q',  'k',  'b',  'n',  'r' },
-};
 
 #endif CONSTANTS_H

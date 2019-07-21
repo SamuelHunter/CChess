@@ -1,18 +1,22 @@
 ﻿#include <iostream>     // std::cout
+#include <fstream>      // std::ifstream
 #include "board.h"
 
 
 // Public
 // ------
-Board::Board() : m_plib() {
+Board::Board(const std::string& initial) : m_plib(), m_initial_name(initial) {
 	reset();
 }
 
 void Board::reset() {
+	//load initial board from json
+	std::ifstream ifs(RULES_DIR + INITIAL_BOARD + JSON_EXT);
+	json ib = json::parse(ifs)[m_initial_name];	//only need json of chosen name
 	for (int i = 0; i < BOARD_SIZE; ++i) {
 		for (int j = 0; j < BOARD_SIZE; ++j) {
-			m_board[i][j] = initial_board[i][j];	//copy initial to board
-			m_neverMoved[i][j] = (initial_board[i][j] != EMPTY);	//reset neverMoved; only positions with pieces are eligible
+			m_board[i][j] = ib[i][j].get<std::string>()[0];	//copy initial to board (length 1 string is a char)
+			m_neverMoved[i][j] = (m_board[i][j] != EMPTY);	//reset neverMoved; only positions with pieces are eligible
 		}
 	}
 }
@@ -36,9 +40,9 @@ void Board::validateFuture(const std::string& future, const int & turn) const {
 std::vector<std::string> Board::listMoves(const std::string& current) const {
 	//no allowable intermediates
 	//maximum positions that can be travelled is 1 less than the board size
-	std::vector<std::string> combinedMoves = listFuture(current, JSON_MOVE_ARRAY, &Board::isEmpty, &Board::rejectAll, BOARD_SIZE - 1);
+	std::vector<std::string> combinedMoves = listFuture(current, PIECE_MOVE_ARRAY, &Board::isEmpty, &Board::rejectAll, BOARD_SIZE - 1);
 	if (neverMovedAt(current)) {	//add any additional initial moves
-		for (const std::string& initial : listFuture(current, JSON_INITIAL_ARRAY, &Board::isEmpty, &Board::rejectAll, BOARD_SIZE - 1)) {
+		for (const std::string& initial : listFuture(current, PIECE_INITIAL_ARRAY, &Board::isEmpty, &Board::rejectAll, BOARD_SIZE - 1)) {
 			combinedMoves.push_back(initial);
 		}
 	}
@@ -47,7 +51,7 @@ std::vector<std::string> Board::listMoves(const std::string& current) const {
 
 std::vector<std::string> Board::listCaptures(const std::string& current) const {
 	//an empty position is an allowable intermediate
-	return listFuture(current, JSON_CAPTURE_ARRAY, &Board::isEnemy, &Board::isEmpty, 1);
+	return listFuture(current, PIECE_CAPTURE_ARRAY, &Board::isEnemy, &Board::isEmpty, 1);
 }
 
 bool Board::attemptMove(const std::string& current, const std::string& future) {
@@ -55,7 +59,7 @@ bool Board::attemptMove(const std::string& current, const std::string& future) {
 		std::cout << "> " << m_plib.getName(pieceAt(current)) << " moved from " << current << " to " << future << "." << std::endl;
 		setPiece(future, pieceAt(current));
 		setPiece(current, EMPTY);
-		setNeverMovedAt(current, false);	//no initial move can be made from current or future
+		setNeverMovedAt(current, false);	//no initial move can be made from current or future now
 		setNeverMovedAt(future, false);
 		return true;	//single turn over; TODO: count down multiple turns
 	} else if (isLegal(current, future, &Board::listCaptures)) {

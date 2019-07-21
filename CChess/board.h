@@ -3,20 +3,20 @@
 
 #include <string>
 #include <vector>
-#include "piece_lib.h"
+#include "piece_library.h"
 #include "constants.h"
 
 
 class Board {
 public:
 	/*
-		calls reset()
+		@brief		calls reset()
 	*/
-	Board();
+	Board(const std::string& initial = NORMAL_INITIAL_BOARD);
 
 	/*
-		replaces current state of m_board with initial_board from constants.h
-		all PieceLib public functions are const, so no need to reset m_plib
+		@brief		replaces current state of m_board with m_initial_name from initial_board.json
+					all PieceLib public functions are const, so no need to reset m_plib
 	*/
 	void reset();
 
@@ -24,7 +24,7 @@ public:
 		@param		current		position of piece before moving
 		@param		turn		current turn
 
-		Throws exception if current is off-board, empty, or doesn't belong to the side whose turn it is
+		@throw		std::invalid_argument
 	*/
 	void validateCurrent(const std::string& current, const int& turn) const;
 
@@ -32,7 +32,7 @@ public:
 		@param		future		position of piece after moving
 		@param		turn		current turn
 
-		Throws exception if future is off-board
+		@throw		std::invalid_argument
 	*/
 	void validateFuture(const std::string& future, const int& turn) const;
 
@@ -58,12 +58,13 @@ public:
 		@param		future		position of piece after moving
 
 		@return		true if move is completed, false if turn continues
-		Throws exception if move is illegal
+
+		@throw		std::invalid_argument
 	*/
 	bool attemptMove(const std::string& current, const std::string& future);
 
 	/*
-		prints layout of board to standard output
+		@brief		prints layout of board to standard output
 	*/
 	void print() const;
 
@@ -146,7 +147,8 @@ private:
 	bool isEnemy(const std::string& otherPos, const std::string& pos) const;
 
 	/*
-		Generic function that listMoves and listCaptures are built off of: restricted by offsetKey, reqf, passf, and maxReq
+		@brief		generic function that listMoves and listCaptures are built off of: restricted by offsetKey, reqf, passf, and maxReq
+
 
 		@param		current		position of piece
 		@param		offsetKey	string of key in json to retrieve offsets array from
@@ -155,7 +157,8 @@ private:
 		@param		maxReq		maximum number of reqf-satisfying positions that can be returned
 
 		@return		vector of legal positions that piece at current could move to
-		Throws exception if char of piece at current is not found in json
+		
+		@throw		std::invalid_argument
 	*/
 	std::vector<std::string> listFuture(const std::string& current, const std::string& offsetKey, restrictionFxn reqf, restrictionFxn passf, const int& maxReq) const;
 
@@ -172,19 +175,24 @@ private:
 	// Member variables
 	// ----------------
 	/*
-		array of pieces currently in play using abbreviations from pieces.json
+		@brief		array of pieces currently in play using abbreviations from pieces.json
 	*/
 	char m_board[BOARD_SIZE][BOARD_SIZE];
 
 	/*
-		array of positions where a move has never been played from/to
+		@brief		array of positions where a move has never been played from/to
 	*/
 	bool m_neverMoved[BOARD_SIZE][BOARD_SIZE];
 
 	/*
-		library of piece rules
+		@brief		library of piece rules
 	*/
-	PieceLib m_plib;
+	PieceLibrary m_plib;
+
+	/*
+		@brief		name of initial board in initial_board.json
+	*/
+	std::string m_initial_name;
 };
 
 #endif BOARD_H

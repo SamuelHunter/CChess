@@ -10,11 +10,10 @@
 using json = nlohmann::json;
 
 
-
 class History {
 public:
 	/*
-		calls reset()
+		@brief		calls reset()
 	*/
 	History();
 
@@ -24,32 +23,31 @@ public:
 	void reset();
 
 	/*
+		@brief		on the top Round of m_history, pushes back a vector of [current, future] onto the corresponding side's turn
+
 		@param		turn		enum of side whose turn it is
 		@param		current		inital position in move
 		@param		future		final position in move
 		@param		last		true if Black is making last move of turn - causes new Round to be prepared
-
-		on the top Round of m_history, pushes back a vector of [current, future] onto the corresponding side's turn
+		
 		WARNING: History only records moves; it never checks their validity
 	*/
 	void recordMove(const int& turn, const std::string& current, const std::string& future, const bool& last = false);
 
 	/*
-		prints history (if any) to standard output
+		@brief		prints history (if any) to standard output
 	*/
 	void print() const;
 
 	/*
-		@param		j		json that will be added to
-
-		stores m_history into json format
+		@brief		saves game history to file
 	*/
-	void toJson(json& j) const;
+	void save() const;
 	
 private:
 	/*
-		every round starts with a White turn and ends with a Black turn,
-		regardless of how many moves (2 element vector of strings: [from, to]) occur
+		@brief		every round starts with a White turn and ends with a Black turn,
+					regardless of how many moves (2 element vector of strings: [from, to]) occur
 	*/
 	struct Round {
 
@@ -58,12 +56,12 @@ private:
 	};
 
 	/*
-		history of moves, stored in Rounds by turn
+		@brief		history of moves, stored in Rounds by turn
 	*/
 	std::deque<Round> m_history;
 
 	/*
-		number of recorded round; will differ from m_history.size() whenever black finishes a turn and white hasn't moved yet
+		@brief		number of recorded round; will differ from m_history.size() whenever black finishes a turn and white hasn't moved yet
 	*/
 	int m_roundCount;
 };
