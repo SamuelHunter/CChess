@@ -9,6 +9,12 @@ Game::Game()
 }
 
 void Game::play() {
+	//Startup
+	std::cout << "Welcome to CChess" << std::endl;
+	std::cout << std::endl << "Press ENTER to begin a new game in " << RULES_PRESET << " mode";
+	std::cin.get();
+	std::cout << "\033c";
+	//Commands
 	bool gameOver = false;
 	while (!gameOver) {			//TODO:checkmate
 		m_board.print();
@@ -51,6 +57,7 @@ void Game::play() {
 		}
 
 	}
+	//Close
 	std::cout << "Thanks for playing!" << std::endl;
 }
 

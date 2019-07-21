@@ -6,14 +6,17 @@ Todo
 	-fix history only being written after black turn, not white
 	-initial moves (pawn)
 	-initial board from json
-	undo
-	checkmate
-	single rules json with presets
-	new game screen with rules selection
+	
+	undo: pseudocode written
+	checkmate: pseudocode written
+	new game screen - rules selection
+	rules preset json - later options like timed?
 	add more pieces to pieces json
 
-Rule changes
-	No castling, pawn promotion, single move turn only, en passant
-Keep
-	Board size, white first, win by checkmate
+
+Rules
+	Changed
+		No castling, pawn promotion, single move turn only, en passant
+	Kept
+		Board size, white first, win by checkmate
 	

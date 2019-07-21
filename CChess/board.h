@@ -10,7 +10,7 @@ public:
 	/*
 		@brief		calls reset()
 	*/
-	Board(const std::string& initial = NORMAL_INITIAL_BOARD);
+	Board(const std::string& initial = RULES_PRESET);
 
 	/*
 		@brief		replaces current state of m_board with m_initial_name from initial_board.json
