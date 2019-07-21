@@ -1,8 +1,6 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-#include <string>
-#include <vector>
 #include "piece_library.h"
 #include "constants.h"
 

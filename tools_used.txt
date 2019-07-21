@@ -1,0 +1,6 @@
+JSON Parser
+https://github.com/nlohmann/json
+https://github.com/nlohmann/json/issues/1132#issuecomment-452250255
+
+IncludeToolbox
+https://marketplace.visualstudio.com/items?itemName=Wumpf.IncludeToolbox

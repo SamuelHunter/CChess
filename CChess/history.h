@@ -1,8 +1,6 @@
 #ifndef HISTORY_H
 #define HISTORY_H
 
-#include <vector>
-#include <string>
 #include <deque>
 
 #include <nlohmann/json.hpp>

@@ -1,9 +1,6 @@
 #ifndef PIECE_LIBRARY_H
 #define PIECE_LIBRARY_H
 
-#include <string>
-#include <vector>
-#include "constants.h"
 #include <nlohmann/json.hpp>
 // for convenience
 using json = nlohmann::json;

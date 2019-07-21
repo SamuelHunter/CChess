@@ -2,7 +2,6 @@
 #include <fstream>		// std::ofstream
 #include <sstream>		// std::stringstream
 #include <iomanip>		// std::put_time
-#include <ctime>		// std::time_t
 
 #include "constants.h"
 #include "history.h"

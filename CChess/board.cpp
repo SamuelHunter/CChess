@@ -1,5 +1,6 @@
 ﻿#include <iostream>     // std::cout
 #include <fstream>      // std::ifstream
+
 #include "board.h"
 
 

@@ -1,5 +1,8 @@
 #include <fstream>      // std::ifstream
+
+#include "constants.h"
 #include "piece_library.h"
+
 
 // Public
 // ------

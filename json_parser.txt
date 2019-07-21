@@ -1,4 +1,0 @@
-https://github.com/nlohmann/json
-
-isntallation:
-https://github.com/nlohmann/json/issues/1132#issuecomment-452250255

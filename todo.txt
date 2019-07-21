@@ -5,11 +5,12 @@ Todo
 	-external log
 	-fix history only being written after black turn, not white
 	-initial moves (pawn)
+	-initial board from json
 	undo
 	checkmate
-	initial board from ruleset json (plib_default, initb_default)
-	add more pieces to pieces json
+	single rules json with presets
 	new game screen with rules selection
+	add more pieces to pieces json
 
 Rule changes
 	No castling, pawn promotion, single move turn only, en passant
