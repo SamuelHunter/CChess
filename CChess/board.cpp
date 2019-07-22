@@ -55,17 +55,21 @@ std::vector<std::string> Board::listCaptures(const std::string& current) const {
 	return listFuture(current, PIECE_CAPTURE_ARRAY, &Board::isEnemy, &Board::isEmpty, 1);
 }
 
-bool Board::attemptMove(const std::string& current, const std::string& future) {
+bool Board::attemptMove(const std::string& current, const std::string& future, const bool& silent) {
 	if (isLegal(current, future, &Board::listMoves)) {
-		std::cout << "> " << m_plib.getName(pieceAt(current)) << " moved from " << current << " to " << future << "." << std::endl;
+		if (!silent) {
+			std::cout << "> " << m_plib.getName(pieceAt(current)) << " moved from " << current << " to " << future << "." << std::endl;
+		}
 		setPiece(future, pieceAt(current));
 		setPiece(current, EMPTY);
 		setNeverMovedAt(current, false);	//no initial move can be made from current or future now
 		setNeverMovedAt(future, false);
 		return true;	//single turn over; TODO: count down multiple turns
 	} else if (isLegal(current, future, &Board::listCaptures)) {
-		std::cout << "> " << m_plib.getName(pieceAt(current)) << " at " << current << " captured "
-			<< m_plib.getName(pieceAt(future)) << " at " << future << std::endl;
+		if (!silent) {
+			std::cout << "> " << m_plib.getName(pieceAt(current)) << " at " << current << " captured "
+				<< m_plib.getName(pieceAt(future)) << " at " << future << std::endl;
+		}
 		setPiece(future, pieceAt(current));
 		setPiece(current, EMPTY);
 		setNeverMovedAt(current, false);

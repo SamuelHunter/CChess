@@ -20,6 +20,7 @@ int inline whichSide(const char& piece) {
 
 
 const std::string SAVE_DIR = "saves\\";
+const std::string UNDO_TEMP = "undo_temp";
 const std::string RULES_DIR = "rules\\";
 const std::string RULES_PRESET = "normal";
 const std::string PIECES_LIBRARY = "piece_library";

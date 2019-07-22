@@ -54,12 +54,13 @@ public:
 	/*
 		@param		current		position of piece before moving
 		@param		future		position of piece after moving
+		@param		silent		if true, won't print description of what move occurred
 
 		@return		true if move is completed, false if turn continues
 
 		@throw		std::invalid_argument
 	*/
-	bool attemptMove(const std::string& current, const std::string& future);
+	bool attemptMove(const std::string& current, const std::string& future, const bool& silent = false);
 
 	/*
 		@brief		prints layout of board to standard output

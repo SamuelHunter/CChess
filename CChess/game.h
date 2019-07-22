@@ -25,9 +25,13 @@ public:
 	/*
 		@brief		loads game history file and inputs moves
 
+
+		@param		filename		name of file (without extension) to be loaded into history
+		@param		silent			if true, won't print success message
+
 		@return		true if moves in file are valid and loaded, false otherwise
 	*/
-	bool load();
+	bool load(const std::string& filename, const bool& silent = false);
 
 	/*
 		@brief		resets game conditions to start
@@ -39,6 +43,11 @@ private:
 		@return		whether user confirmed the command when prompted
 	*/
 	bool confirm() const;
+
+	/*
+		@return		filename (without extension) entered by user
+	*/
+	const std::string requestFilename() const;
 
 	/*
 		@brief		prints all available moves from current

@@ -16,9 +16,20 @@ public:
 	History();
 
 	/*
-		resets state of m_history and m_roundCount
+		@brief		resets state of m_history and m_roundCount
 	*/
 	void reset();
+
+	/*
+		@return		number of rounds recorded
+	*/
+	const int& rounds();
+
+
+	/*
+		@return		number of moves recorded
+	*/
+	const int& moves();
 
 	/*
 		@brief		on the top Round of m_history, pushes back a vector of [current, future] onto the corresponding side's turn
@@ -39,8 +50,26 @@ public:
 
 	/*
 		@brief		saves game history to file
+
+		@param		filename	name of file (without extension) to save history to
+		@param		silent		if true, won't print success message
 	*/
-	void save() const;
+	void save(const std::string& filename, const bool& silent = false) const;
+
+	/*
+		@brief		deletes file in save directory (for undo_temp)
+
+		@param		filename	name of save to be deleted (without extension)
+		@param		silent		if true, won't print success message
+	*/
+	void deleteSave(const std::string& filename, const bool& silent = false) const;
+
+	/*
+		@param		n			remove the last n moves from history
+
+		@return		true if any (up to n) moves were erased
+	*/
+	bool erase(int n);
 	
 private:
 	/*
@@ -59,9 +88,15 @@ private:
 	std::deque<Round> m_history;
 
 	/*
-		@brief		number of recorded round; will differ from m_history.size() whenever black finishes a turn and white hasn't moved yet
+		@brief		number of recorded/in-progress rounds
+					will differ from m_history.size() whenever black finishes a turn and white hasn't moved yet
 	*/
 	int m_roundCount;
+
+	/*
+		@brief		number of recorded moves (cannot be used to determine m_roundCount since moves per round is variable)
+	*/
+	int m_moveCount;
 };
 
 #endif HISTORY_H

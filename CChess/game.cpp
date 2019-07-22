@@ -18,10 +18,11 @@ void Game::play() {
 	bool gameOver = false;
 	while (!gameOver) {			//TODO:checkmate
 		m_board.print();
-		char cmd;
-		std::cout << std::endl << "[m]ove  [h]istory  [s]ave  [l]oad  [r]eset  [q]uit" << std::endl;
+		
+		std::cout << std::endl << "[m]ove  [h]istory  [s]ave  [l]oad  [u]ndo  [r]eset  [q]uit" << std::endl;
 		while (1) {	//retry until valid command
 			try {
+				char cmd;
 				std::cout << "Command:\t";
 				std::cin >> cmd;
 				std::cin.ignore();	//flush whitespace
@@ -33,10 +34,19 @@ void Game::play() {
 					m_history.print();
 					break;
 				case 's':
-					m_history.save();
+					m_history.save(requestFilename());
 					break;
 				case 'l':
-					if (!load()) reset();
+					if (!load(requestFilename())) reset();
+					break;
+				case 'u':
+					if (m_history.erase(1)) {//only undo once
+						m_history.save(UNDO_TEMP, true);		//all silently
+						load(UNDO_TEMP, true);
+						m_history.deleteSave(UNDO_TEMP, true);
+					} else {
+						std::cout << "No moves to undo!" << std::endl;
+					}
 					break;
 				case 'r':
 					if (confirm()) reset();
@@ -104,10 +114,7 @@ void Game::move() {
 	}
 }
 
-bool Game::load() {
-	std::string filename;
-	std::cout << "Enter filename to load (no extension): ";
-	std::getline(std::cin, filename);
+bool Game::load(const std::string& filename, const bool& silent) {
 	std::string path = SAVE_DIR + filename + JSON_EXT;
 	std::ifstream ifs(path);
 	json file = json::parse(ifs);
@@ -118,7 +125,7 @@ bool Game::load() {
 			for (const auto& m : file["round"][std::to_string(i)]["white_turn"]) {	//moves
 				m_board.validateCurrent(m[0], m_turn);
 				m_board.validateFuture(m[1], m_turn);
-				if (m_board.attemptMove(m[0], m[1])) {
+				if (m_board.attemptMove(m[0], m[1], true)) {	//always silent
 					m_history.recordMove(m_turn, m[0], m[1]);
 					m_turn = BLACK;
 				} else {
@@ -128,7 +135,7 @@ bool Game::load() {
 			for (const auto& m : file["round"][std::to_string(i)]["black_turn"]) {
 				m_board.validateCurrent(m[0], m_turn);
 				m_board.validateFuture(m[1], m_turn);
-				if (m_board.attemptMove(m[0], m[1])) {
+				if (m_board.attemptMove(m[0], m[1], true)) {	//always silent
 					m_history.recordMove(m_turn, m[0], m[1], true);
 					m_turn = WHITE;
 				} else {
@@ -136,7 +143,9 @@ bool Game::load() {
 				}
 			}
 		}
-		std::cout << "Game successfully loaded from " << path << std::endl;
+		if (!silent) {
+			std::cout << "Game successfully loaded from " << path << std::endl;
+		}
 		return true;
 	} catch (const std::invalid_argument& e) {
 		std::cout << e.what() << std::endl;
@@ -158,6 +167,13 @@ bool Game::confirm() const {
 	std::cin >> reset;
 	std::cin.ignore();
 	return (reset == 'y');
+}
+
+const std::string Game::requestFilename() const {
+	std::string filename;
+	std::cout << "Enter filename (no extension): ";
+	std::getline(std::cin, filename);
+	return filename;
 }
 
 void Game::listAvailable(const std::string & current) const {
