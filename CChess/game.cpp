@@ -13,7 +13,7 @@ void Game::play() {
 	std::cout << "Welcome to CChess" << std::endl;
 	std::cout << std::endl << "Press ENTER to begin a new game in " << RULES_PRESET << " mode";
 	std::cin.get();
-	std::cout << "\033c";
+	system("cls");
 	//Commands
 	bool gameOver = false;
 	while (!gameOver) {			//TODO:checkmate
@@ -59,7 +59,7 @@ void Game::play() {
 				}
 				std::cout << std::endl << "Press ENTER to continue... ";
 				std::cin.get();			//wait
-				std::cout << "\033c";	//clear console for windows/linux
+				system("cls");
 				break;
 			} catch (std::invalid_argument& e) {
 				std::cout << e.what() << std::endl;
