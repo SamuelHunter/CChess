@@ -2,6 +2,7 @@
 #define BOARD_H
 
 #include "piece_library.h"
+#include "ruleset.h"
 #include "constants.h"
 
 
@@ -10,11 +11,12 @@ public:
 	/*
 		@brief		calls reset()
 	*/
-	Board(const std::string& initial = RULES_PRESET);
+	Board(Ruleset* rs);
 
 	/*
 		@brief		replaces current state of m_board with m_initial_name from initial_board.json
 					all PieceLib public functions are const, so no need to reset m_plib
+					similarly for m_rules
 	*/
 	void reset();
 
@@ -35,21 +37,50 @@ public:
 	void validateFuture(const std::string& future, const int& turn) const;
 
 
-	typedef std::vector<std::string>(Board::*listFxn)(const std::string& current) const;
+	typedef std::vector<std::string>(Board::*listFxn)(const std::string&);
 
 	/*
 		@param		current		position of piece before moving
 
 		@return		vector of legal positions that piece at current could move to (may include initial moves; without capturing)
 	*/
-	std::vector<std::string> listMoves(const std::string& current) const;
+	std::vector<std::string> listMoves(const std::string& current);
 
 	/*
 		@param		current		position of piece before capturing
 
 		@return		vector of legal positions that piece at current could capture
 	*/
-	std::vector<std::string> listCaptures(const std::string& current) const;
+	std::vector<std::string> listCaptures(const std::string& current);
+	
+	/*
+		@param		side		which side should be "checked" for check?
+
+		@return		true if side is in check (royal piece can be captured by opponent)
+	*/
+	bool inCheck(const int& side);
+
+	/*
+		@param		current		position of piece before moving
+		@param		future		position of piece after moving
+
+		@return		true if royal piece would be in check, had this move been executed
+	*/
+	bool wouldBeCheck(const std::string& current, const std::string& future);
+
+	/*
+		@param		side		which side is potentially in checkmate?
+
+		@return		true if side is in checkmate (every move/capture available to side results in check)
+	*/
+	bool inCheckMate(const int& side);
+
+	/*
+		@param		side		whose turn is it?
+
+		@return		true if any move can be made (board not in checkmate)
+	*/
+	bool preMove(const int& side);
 
 	/*
 		@param		current		position of piece before moving
@@ -68,6 +99,17 @@ public:
 	void print() const;
 
 private:
+	/*
+		@brief		makes backups of board and neverMoved so that what if checks can be carried out non-destructively
+	*/
+	void freeze();
+
+	/*
+		@brief		restores backups of board and neverMoved
+		MAKE SURE UNFREEZE WILL BE CALLED BEFORE AN EARLY RETURN!!!!!!!!!!!!!!
+	*/
+	void unfreeze();
+
 	/*
 		@param		pos			position of a piece
 
@@ -110,6 +152,12 @@ private:
 	*/
 	bool onBoard(const std::string& pos) const;
 
+	/*
+		@param		side		side whose royal piece must be found
+
+		@return		position of royal piece belonging to side of side
+	*/
+	const std::string findRoyal(const int& side) const;
 
 	typedef bool (Board::*restrictionFxn)(const std::string&, const std::string&) const;
 
@@ -146,6 +194,14 @@ private:
 	bool isEnemy(const std::string& otherPos, const std::string& pos) const;
 
 	/*
+		@param		otherPos		position of potential enemy
+		@param		pos				position where 'enemy' is determined from
+
+		@return		true if otherPos contains a piece belonging to your side, false otherwise
+	*/
+	bool isFriendly(const std::string& otherPos, const std::string& pos) const;
+
+	/*
 		@brief		generic function that listMoves and listCaptures are built off of: restricted by offsetKey, reqf, passf, and maxReq
 
 
@@ -159,17 +215,26 @@ private:
 		
 		@throw		std::invalid_argument
 	*/
-	std::vector<std::string> listFuture(const std::string& current, const std::string& offsetKey, restrictionFxn reqf, restrictionFxn passf, const int& maxReq) const;
+	std::vector<std::string> listFuture(const std::string& current, const std::string& offsetKey,
+		restrictionFxn reqf, restrictionFxn passf, const int& maxReq);
 
 	/*
 		@param		current		position of piece
 		@param		future		possible position of piece
-		@param		lf			function that returns a legal list to check future against
+		@param		legalf		function that returns a legal list to check future against
 
 		@return		true if move is legal, false if not
 	*/
-	bool isLegal(const std::string& current, const std::string& future, listFxn lf) const;
+	bool isLegal(const std::string& current, const std::string& future, listFxn legalf);
 
+	/*
+		@brief		changes char's in board and neverMoved (DOES NOT CHECK FOR MOVE VALIDITY)
+
+		@param		current		position of piece
+		@param		future		possible position of piece
+
+	*/
+	void execMove(const std::string& current, const std::string& future);
 
 	// Member variables
 	// ----------------
@@ -179,9 +244,19 @@ private:
 	char m_board[BOARD_SIZE][BOARD_SIZE];
 
 	/*
+		@brief		experimental copy of board (for check tests)
+	*/
+	char m_board_backup[BOARD_SIZE][BOARD_SIZE];
+
+	/*
 		@brief		array of positions where a move has never been played from/to
 	*/
 	bool m_neverMoved[BOARD_SIZE][BOARD_SIZE];
+
+	/*
+		@brief		experimental copy of neverMoved (for check tests)
+	*/
+	bool m_neverMoved_backup[BOARD_SIZE][BOARD_SIZE];
 
 	/*
 		@brief		library of piece rules
@@ -189,9 +264,9 @@ private:
 	PieceLibrary m_plib;
 
 	/*
-		@brief		name of initial board in initial_board.json
+		@brief		rules from ruleset.json
 	*/
-	std::string m_initial_name;
+	Ruleset* m_rules;
 };
 
 #endif BOARD_H

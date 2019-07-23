@@ -9,8 +9,14 @@ https://stackoverflow.com/questions/5755942/how-do-you-auto-format-code-in-visua
 https://www.elated.com/json-basics/
 https://stackoverflow.com/questions/28977585/how-to-get-put-time-into-a-variable
 https://www.codeproject.com/Articles/1214018/Chess-Console-Game-in-Cplusplus
+https://stackoverflow.com/questions/4645705/vector-erase-iterator
 
 the chezz
 ---------
 https://www.regencychess.co.uk/blog/2012/07/chess-noob-9-algebraic-notation/
 https://en.wikipedia.org/wiki/Chess_notation#Notation_systems_for_humans
+https://en.wikipedia.org/wiki/Fairy_chess_piece
+
+gui
+---
+https://www.youtube.com/watch?v=eMm_bqXnZds

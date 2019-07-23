@@ -5,20 +5,26 @@
 
 
 Game::Game()
-	:m_board(), m_turn(FIRST_TURN), m_history() {
+	:m_board(), m_turn(FIRST_TURN), m_history(), m_ruleset() {
 }
 
 void Game::play() {
 	//Startup
 	std::cout << "Welcome to CChess" << std::endl;
-	std::cout << std::endl << "Press ENTER to begin a new game in " << RULES_PRESET << " mode";
+	std::cout << "Please choose from the rule set" << std::endl;
+	m_ruleset.printAll();
+	std::string rule_name;
+	std::cout << "Enter the name:\t";
+	std::getline(std::cin, rule_name);
+	m_ruleset.setRules(rule_name);	//TODO: check for bad input
+	std::cout << std::endl << "Press ENTER to begin a new game... ";
 	std::cin.get();
 	system("cls");
+	m_board = new Board(&m_ruleset);	//only dynamic memory allocation so far
 	//Commands
 	bool gameOver = false;
 	while (!gameOver) {			//TODO:checkmate
-		m_board.print();
-		
+		m_board->print();
 		std::cout << std::endl << "[m]ove  [h]istory  [s]ave  [l]oad  [u]ndo  [r]eset  [q]uit" << std::endl;
 		while (1) {	//retry until valid command
 			try {
@@ -72,44 +78,41 @@ void Game::play() {
 }
 
 void Game::move() {
-	if (m_turn == WHITE) {
-		std::cout << std::endl << "White's turn (UPPERCASE PIECES)";
-	} else if (m_turn == BLACK) {
-		std::cout << std::endl << "Black's turn (lowercase pieces)";
-	}
-	std::string current, future;
-	while (1) {	//retry current
-		try {
-			std::cout << std::endl << "Current:\t\t";
-			std::getline(std::cin, current);
-			m_board.validateCurrent(current, m_turn);
-			listAvailable(current);
-			break;
-		} catch (const std::invalid_argument& e) {	//current invalid OR no moves or captures
-			std::cout << e.what() << std::endl;
-		}
-	}
-	while (1) {	//retry future
-		try {
-			std::cout << std::endl << "Future:\t\t\t";
-			std::getline(std::cin, future);
-			m_board.validateFuture(future, m_turn);		//check if future is feasible
-			if (m_board.attemptMove(current, future)) {	//check if future is legal
-				//turn is over
-				if (m_turn == WHITE) {
-					m_history.recordMove(m_turn, current, future);	//record before m_turn changes
-					m_turn = BLACK;
-				} else if (m_turn == BLACK) {
-					m_history.recordMove(m_turn, current, future, true);	//both turns have finished - last move of turn
-					m_turn = WHITE;	//new round begins
-				}
-			} else {
-				//turn is not over and m_turn has not changed
-				m_history.recordMove(m_turn, current, future);
+	if (m_board->preMove(m_turn)) {//a move can be made
+		std::string current, future;
+		while (1) {	//retry current
+			try {
+				std::cout << std::endl << "Current:\t\t";
+				std::getline(std::cin, current);
+				m_board->validateCurrent(current, m_turn);
+				listAvailable(current);
+				break;
+			} catch (const std::invalid_argument& e) {	//current invalid OR no moves or captures
+				std::cout << e.what() << std::endl;
 			}
-			break;
-		} catch (const std::invalid_argument& e) {	//future invalid OR illegal move
-			std::cout << e.what() << std::endl;
+		}
+		while (1) {	//retry future
+			try {
+				std::cout << std::endl << "Future:\t\t\t";
+				std::getline(std::cin, future);
+				m_board->validateFuture(future, m_turn);		//check if future is feasible
+				if (m_board->attemptMove(current, future)) {	//check if future is legal
+					//turn is over
+					if (m_turn == WHITE) {
+						m_history.recordMove(m_turn, current, future);	//record before m_turn changes
+						m_turn = BLACK;
+					} else if (m_turn == BLACK) {
+						m_history.recordMove(m_turn, current, future, true);	//both turns have finished - last move of turn
+						m_turn = WHITE;	//new round begins
+					}
+				} else {
+					//turn is not over and m_turn has not changed
+					m_history.recordMove(m_turn, current, future);
+				}
+				break;
+			} catch (const std::invalid_argument& e) {	//future invalid OR illegal move
+				std::cout << e.what() << std::endl;
+			}
 		}
 	}
 }
@@ -123,9 +126,9 @@ bool Game::load(const std::string& filename, const bool& silent) {
 	try {
 		for (int i = 0; i < file["round"].size(); ++i) {	//rounds
 			for (const auto& m : file["round"][std::to_string(i)]["white_turn"]) {	//moves
-				m_board.validateCurrent(m[0], m_turn);
-				m_board.validateFuture(m[1], m_turn);
-				if (m_board.attemptMove(m[0], m[1], true)) {	//always silent
+				m_board->validateCurrent(m[0], m_turn);
+				m_board->validateFuture(m[1], m_turn);
+				if (m_board->attemptMove(m[0], m[1], true)) {	//always silent
 					m_history.recordMove(m_turn, m[0], m[1]);
 					m_turn = BLACK;
 				} else {
@@ -133,9 +136,9 @@ bool Game::load(const std::string& filename, const bool& silent) {
 				}
 			}
 			for (const auto& m : file["round"][std::to_string(i)]["black_turn"]) {
-				m_board.validateCurrent(m[0], m_turn);
-				m_board.validateFuture(m[1], m_turn);
-				if (m_board.attemptMove(m[0], m[1], true)) {	//always silent
+				m_board->validateCurrent(m[0], m_turn);
+				m_board->validateFuture(m[1], m_turn);
+				if (m_board->attemptMove(m[0], m[1], true)) {	//always silent
 					m_history.recordMove(m_turn, m[0], m[1], true);
 					m_turn = WHITE;
 				} else {
@@ -156,7 +159,7 @@ bool Game::load(const std::string& filename, const bool& silent) {
 
 void Game::reset() {
 	//matches constructor
-	m_board.reset();
+	m_board->reset();
 	m_turn = FIRST_TURN;
 	m_history.reset();
 }
@@ -176,9 +179,9 @@ const std::string Game::requestFilename() const {
 	return filename;
 }
 
-void Game::listAvailable(const std::string & current) const {
-	std::vector<std::string> moves = m_board.listMoves(current);
-	std::vector<std::string> captures = m_board.listCaptures(current);
+void Game::listAvailable(const std::string & current) {
+	std::vector<std::string> moves = m_board->listMoves(current);
+	std::vector<std::string> captures = m_board->listCaptures(current);
 	if (moves.size() == 0 && captures.size() == 0) {
 		throw std::invalid_argument("No available moves or captures. Try again.");
 	}

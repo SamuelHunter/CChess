@@ -57,14 +57,15 @@ private:
 
 		@throw		std::invalid_argument
 	*/
-	void listAvailable(const std::string& current) const;
+	void listAvailable(const std::string& current);
 
 	//Member variables
 	//----------------
 	/*
 		@brief		board containing layout of pieces, move checking, and rules
+					pointer instead of object so rules can be supplied after game object is constructed
 	*/
-	Board m_board;
+	Board* m_board;
 
 	/*
 		@brief		enum of whose turn it currently is (White or Black)
@@ -75,6 +76,11 @@ private:
 		@brief		history of rounds/turns/moves
 	*/
 	History m_history;
+
+	/*
+		@brief		ruleset for board
+	*/
+	Ruleset m_ruleset;
 };
 
 #endif GAME_H

@@ -1,25 +1,22 @@
 ﻿#include <iostream>     // std::cout
 #include <fstream>      // std::ifstream
-
+#include <algorithm>	// std::copy
 #include "board.h"
 
 
 // Public
 // ------
-Board::Board(const std::string& initial) : m_plib(), m_initial_name(initial) {
+Board::Board(Ruleset* rs) : m_plib(), m_rules(rs) {
 	reset();
 }
 
 void Board::reset() {
-	//load initial board from json
-	std::ifstream ifs(RULES_DIR + INITIAL_BOARD + JSON_EXT);
-	json ib = json::parse(ifs)[m_initial_name];	//only need json of chosen name
 	for (int i = 0; i < BOARD_SIZE; ++i) {
 		for (int j = 0; j < BOARD_SIZE; ++j) {
-			m_board[i][j] = ib[i][j].get<std::string>()[0];	//copy initial to board (length 1 string is a char)
+			m_board[i][j] = m_rules->getInitialBoardAt(i, j);//copy initial to board (length 1 string is a char)
 			m_neverMoved[i][j] = (m_board[i][j] != EMPTY);	//reset neverMoved; only positions with pieces are eligible
 		}
-	}
+	}		//m_board_backup & m_neverMoved_backup can have anything as they are overwritten often
 }
 
 void Board::validateCurrent(const std::string& current, const int& turn) const {
@@ -38,7 +35,7 @@ void Board::validateFuture(const std::string& future, const int & turn) const {
 	}
 }
 
-std::vector<std::string> Board::listMoves(const std::string& current) const {
+std::vector<std::string> Board::listMoves(const std::string& current) {
 	//no allowable intermediates
 	//maximum positions that can be travelled is 1 less than the board size
 	std::vector<std::string> combinedMoves = listFuture(current, PIECE_MOVE_ARRAY, &Board::isEmpty, &Board::rejectAll, BOARD_SIZE - 1);
@@ -50,9 +47,82 @@ std::vector<std::string> Board::listMoves(const std::string& current) const {
 	return combinedMoves;
 }
 
-std::vector<std::string> Board::listCaptures(const std::string& current) const {
+std::vector<std::string> Board::listCaptures(const std::string& current) {
 	//an empty position is an allowable intermediate
 	return listFuture(current, PIECE_CAPTURE_ARRAY, &Board::isEnemy, &Board::isEmpty, 1);
+}
+
+bool Board::inCheck(const int& side) {
+	for (char row = FIRST_ROW; row < char(FIRST_ROW + BOARD_SIZE); ++row) {
+		for (char col = FIRST_COL; col < char(FIRST_COL + BOARD_SIZE); ++col) {
+			std::string otherPos;
+			otherPos += col;
+			otherPos += row;
+			if (isEnemy(otherPos, findRoyal(side))) {	//every piece that is an enemy to pos
+				for (const auto& c : listCaptures(otherPos)) {	//see if any could capture pos
+					if (findRoyal(side) == c) {
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;	//not at risk
+}
+
+bool Board::wouldBeCheck(const std::string& current, const std::string& future) {
+	freeze();
+	execMove(current, future);
+	bool check = inCheck(whichSide(pieceAt(current)));
+	unfreeze();	//order matters
+	return check;
+}
+
+bool Board::inCheckMate(const int& side) {
+	for (char row = FIRST_ROW; row < char(FIRST_ROW + BOARD_SIZE); ++row) {
+		for (char col = FIRST_COL; col < char(FIRST_COL + BOARD_SIZE); ++col) {
+			std::string otherPos;
+			otherPos += col;
+			otherPos += row;
+			if (isFriendly(otherPos, findRoyal(side))) {	//every piece belonging to pos's side
+				for (const auto& m : listMoves(otherPos)) {	//check every move to end check
+					if (!wouldBeCheck(otherPos, m)) {
+						return false;
+					}
+				}
+				for (const auto& c : listCaptures(otherPos)) {	//check every capture to end check
+					if (!wouldBeCheck(otherPos, c)) {
+						return false;
+					}
+				}
+			}
+		}
+	}
+	return true;	//ded
+}
+
+bool Board::preMove(const int& side) {
+	//Checkmate?
+	if (inCheckMate(side)) {
+		std::cout << std::endl << "Checkmate!" << std::endl
+			<< m_plib.getName(pieceAt(findRoyal(side))) << ", the royal piece, cannot escape capture." << std::endl;
+		if (whichSide(pieceAt(findRoyal(side))) == WHITE) {
+			std::cout << "Black wins.";
+		} else if (whichSide(pieceAt(findRoyal(side))) == BLACK) {
+			std::cout << "White wins.";
+		}
+		return false;	//game over
+	}
+	//Check?
+	if (inCheck(side)) {
+		std::cout << "Warning: " << m_plib.getName(pieceAt(findRoyal(side))) << " is in check." << std::endl;
+	}
+	if (side == WHITE) {
+		std::cout << std::endl << "White's turn (UPPERCASE PIECES)";
+	} else if (side == BLACK) {
+		std::cout << std::endl << "Black's turn (lowercase pieces)";
+	}
+	return true;
 }
 
 bool Board::attemptMove(const std::string& current, const std::string& future, const bool& silent) {
@@ -60,22 +130,16 @@ bool Board::attemptMove(const std::string& current, const std::string& future, c
 		if (!silent) {
 			std::cout << "> " << m_plib.getName(pieceAt(current)) << " moved from " << current << " to " << future << "." << std::endl;
 		}
-		setPiece(future, pieceAt(current));
-		setPiece(current, EMPTY);
-		setNeverMovedAt(current, false);	//no initial move can be made from current or future now
-		setNeverMovedAt(future, false);
+		execMove(current, future);
 		return true;	//single turn over; TODO: count down multiple turns
 	} else if (isLegal(current, future, &Board::listCaptures)) {
 		if (!silent) {
 			std::cout << "> " << m_plib.getName(pieceAt(current)) << " at " << current << " captured "
 				<< m_plib.getName(pieceAt(future)) << " at " << future << std::endl;
 		}
-		setPiece(future, pieceAt(current));
-		setPiece(current, EMPTY);
-		setNeverMovedAt(current, false);
-		setNeverMovedAt(future, false);
+		execMove(current, future);
 		return true;
-	} else {
+	} else {	//must fail both move and capture before throwing
 		throw std::invalid_argument("Illegal move. Try again.");
 	}
 }
@@ -101,6 +165,16 @@ void Board::print() const {
 		else
 			std::cout << ' ';
 	}
+}
+
+void Board::freeze() {
+	std::copy(&m_board[0][0], &m_board[0][0] + BOARD_SIZE * BOARD_SIZE, &m_board_backup[0][0]);
+	std::copy(&m_neverMoved[0][0], &m_neverMoved[0][0] + BOARD_SIZE * BOARD_SIZE, &m_neverMoved_backup[0][0]);
+}
+
+void Board::unfreeze() {
+	std::copy(&m_board_backup[0][0], &m_board_backup[0][0] + BOARD_SIZE * BOARD_SIZE, &m_board[0][0]);
+	std::copy(&m_neverMoved_backup[0][0], &m_neverMoved_backup[0][0] + BOARD_SIZE * BOARD_SIZE, &m_neverMoved[0][0]);
 }
 
 // Private
@@ -137,6 +211,20 @@ bool Board::onBoard(const std::string& pos) const {
 		pos[1] >= FIRST_ROW && pos[1] < char(FIRST_ROW + BOARD_SIZE));
 }
 
+const std::string Board::findRoyal(const int& side) const {
+	for (char row = FIRST_ROW; row < char(FIRST_ROW + BOARD_SIZE); ++row) {
+		for (char col = FIRST_COL; col < char(FIRST_COL + BOARD_SIZE); ++col) {
+			std::string pos;
+			pos += col;
+			pos += row;
+			if (pieceAt(pos) == m_rules->getRoyal(side)) {
+				return pos;
+			}
+		}
+	}
+	return std::string();
+}
+
 bool Board::acceptAll(const std::string & dummy1, const std::string & dummy2) const {
 	return true;
 }
@@ -153,7 +241,12 @@ bool Board::isEnemy(const std::string& otherPos, const std::string& pos) const {
 	return ((pieceAt(otherPos) != EMPTY) && (whichSide(pieceAt(otherPos)) != whichSide(pieceAt(pos))));
 }
 
-std::vector<std::string> Board::listFuture(const std::string& current, const std::string& offsetKey, restrictionFxn reqf, restrictionFxn passf, const int& maxReq) const {
+bool Board::isFriendly(const std::string & otherPos, const std::string & pos) const {
+	return ((pieceAt(otherPos) != EMPTY) && (whichSide(pieceAt(otherPos)) == whichSide(pieceAt(pos))));
+}
+
+std::vector<std::string> Board::listFuture(const std::string& current, const std::string& offsetKey,
+	restrictionFxn reqf, restrictionFxn passf, const int& maxReq) {
 	std::vector<std::string> future;
 
 	// Identify piece char from json
@@ -167,33 +260,44 @@ std::vector<std::string> Board::listFuture(const std::string& current, const std
 	// Calculate offsets
 	int side = whichSide(pieceAt(current));
 	for (auto& o : offsets) {
-		std::string next = offset(current, o, side);
-		if (o.size() == JSON_RANGE_INDEX + 1 && o[JSON_RANGE_INDEX] == JSON_RANGE_INFINITE) {
-			//infinite offset, with up to d nexts satisfying rf
-			for (int d = maxReq; (d > 0 && onBoard(next)); next = offset(next, o, side)) {
-				//next meets restriction and belongs to future
-				if ((this->*reqf)(next, current)) {		//member function pointer syntax
-					future.push_back(next);
-					d--;
-				}//next isn't an allowable intermediate position
-				else if (!(this->*passf)(next, current)) {
-					break;
-				}
+		for (std::string next = offset(current, o, side); onBoard(next); next = offset(next, o, side)) {
+			if (future.size() >= maxReq) {
+				break;
 			}
-		} else {
-			//regular offset
-			if (onBoard(next) && (this->*reqf)(next, current))
+			//next meets restriction and belongs to future (member function pointer syntax)
+			else if ((this->*reqf)(next, current)) {
 				future.push_back(next);
+			}
+			//next isn't an allowable intermediate position
+			else if (!(this->*passf)(next, current)) {
+				break;
+			}
+			//single offset - no more chances
+			if (o.size() == JSON_RANGE_INDEX) {	
+				break;
+			}
 		}
 	}
 	return future;
 }
 
-bool Board::isLegal(const std::string& current, const std::string& future, listFxn lf) const {
+bool Board::isLegal(const std::string& current, const std::string& future, listFxn lf) {
 	for (std::string move : (this->*lf)(current)) {
 		if (future == move) {
-			return true;
+			if (wouldBeCheck(current, future)) {
+				throw std::invalid_argument("Move would put " + m_plib.getName(pieceAt(findRoyal(whichSide(pieceAt(current)))))
+					+ " in check. Try again.");
+			} else {
+				return true;
+			}
 		}
 	}
 	return false;
+}
+
+void Board::execMove(const std::string & current, const std::string & future) {
+	setPiece(future, pieceAt(current));
+	setPiece(current, EMPTY);
+	setNeverMovedAt(current, false);	//no initial move can be made from current or future now
+	setNeverMovedAt(future, false);
 }

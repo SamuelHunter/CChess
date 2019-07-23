@@ -129,6 +129,7 @@
     <ClCompile Include="history.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="piece_library.cpp" />
+    <ClCompile Include="ruleset.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="board.h" />
@@ -136,6 +137,7 @@
     <ClInclude Include="game.h" />
     <ClInclude Include="history.h" />
     <ClInclude Include="piece_library.h" />
+    <ClInclude Include="ruleset.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
