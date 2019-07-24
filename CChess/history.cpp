@@ -62,27 +62,29 @@ void History::print() const {
 	std::cout << "------------------------" << std::endl;
 }
 
-void History::save(const std::string& filename, const bool& silent) const {
+void History::save(const std::string& filename, const std::string& rules, const bool& silent) const {
 	std::string path = SAVE_DIR + filename + JSON_EXT;
 	std::ofstream ofs(path);
 	if (ofs.is_open()) {
 		json j;
+		//store rules
+		j[SAVE_RULES] = rules;
 		//store moves in turns in rounds
 		for (int i = 0; i < m_roundCount; ++i) {
-			j["round"][std::to_string(i)]["white_turn"] = m_history[i].white_turn;
-			j["round"][std::to_string(i)]["black_turn"] = m_history[i].black_turn;
+			j[SAVE_ROUND][std::to_string(i)][SAVE_WHITE_TURN] = m_history[i].white_turn;
+			j[SAVE_ROUND][std::to_string(i)][SAVE_BLACK_TURN] = m_history[i].black_turn;
 		}
 		//store time
 		std::stringstream ss;
 		auto t = std::time(nullptr);
 		auto tm = *std::localtime(&t);
 		ss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
-		j["time"] = ss.str();
+		j[SAVE_TIME] = ss.str();
 		//write file
 		ofs << std::setw(2) << j << std::endl;
 		ofs.close();
 		if (!silent) {
-			std::cout << "Game saved as " << path << std::endl;
+			std::cout << "Game saved at " << j[SAVE_TIME].get<std::string>() << " as " << path << std::endl;
 		}
 	} else {
 		std::cout << "Error creating file! Save failed." << std::endl;

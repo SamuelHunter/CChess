@@ -10,7 +10,12 @@ Ruleset::Ruleset(const std::string& rules_name) : m_rules_name(rules_name) {
 }
 
 void Ruleset::setRules(const std::string& name) {
-	m_rules_name = name;
+	if (m_ruleset.find(name) != m_ruleset.end()) {
+		m_rules_name = name;
+	} else {
+		throw std::invalid_argument("Rules do no exist. Try again.");
+	}
+	
 }
 
 const char Ruleset::getInitialBoardAt(const int& row, const int& col) const {

@@ -17,6 +17,8 @@ public:
 
 	/*
 		@param		name		name of rules object in json
+
+		@throw		invalid_argument if name is not an object in the json
 	*/
 	void setRules(const std::string& name);
 

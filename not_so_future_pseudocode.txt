@@ -1,33 +1,36 @@
-inCheck(char array scenario)
+inCheck()
     for every opponent piece
-        for every capture
-            if king's square is in there
+        for every capture position
+            if king's square is one of those
                 return true
     return false
 
-isCheckmate()
+inCheckmate()
     for every one of your own piece
         for every move
-            if not inCheck in this scenario
+            if executed, wouldn't be in check
                 return false
         for every capture
-            if not inCheck in this scenario
+            if executed, wouldn't be in check
                 return false
     return true
 
 undo(n = 1)
     save, however
-        forget (n) moves: (up to, if there are less moves than n, just remove all and exit normally)
+        erase (n) moves: (up to, if there are less moves than n, just remove all and exit normally)
             for iterator = end; iterator >= begin;
                 if n == 0
                     break
-                if black turn is not empty
+                else if black turn is not empty
                     pop black's last move
+		    --moveCount
                     --n
                 else if white turn is not empty
                     pop white's last move
                     --n
-                    if white turn is now empty
-                        --iterator
+ 		    --moveCount
+                else if white turn is empty
+		    --moveCount
+                    --iterator
     load temporary save
     (optional) delete temporary save        

@@ -11,14 +11,21 @@ public:
 	/*
 		@brief		calls reset()
 	*/
-	Board(Ruleset* rs);
+	Board();
 
 	/*
 		@brief		replaces current state of m_board with m_initial_name from initial_board.json
-					all PieceLib public functions are const, so no need to reset m_plib
-					similarly for m_rules
+					all PieceLib public functions are const, so no need to reset m_plib; similarly for Ruleset
+					
+
+		@param		newRules		if supplied, rules will be updated as well
 	*/
-	void reset();
+	void reset(const std::string& newRules = "");
+
+	/*
+		@brief		calls printAll from m_rules
+	*/
+	void printRules();
 
 	/*
 		@param		current		position of piece before moving
@@ -76,6 +83,8 @@ public:
 	bool inCheckMate(const int& side);
 
 	/*
+		@brief		preliminary test for checkmate, check, and announcing whose turn it is
+
 		@param		side		whose turn is it?
 
 		@return		true if any move can be made (board not in checkmate)
@@ -213,7 +222,7 @@ private:
 
 		@return		vector of legal positions that piece at current could move to
 		
-		@throw		std::invalid_argument
+		@throw		std::invalid_argument if piece at current if not found in PieceLibrary
 	*/
 	std::vector<std::string> listFuture(const std::string& current, const std::string& offsetKey,
 		restrictionFxn reqf, restrictionFxn passf, const int& maxReq);
@@ -244,7 +253,7 @@ private:
 	char m_board[BOARD_SIZE][BOARD_SIZE];
 
 	/*
-		@brief		experimental copy of board (for check tests)
+		@brief		backup copy of board (so board can be modified for check tests)
 	*/
 	char m_board_backup[BOARD_SIZE][BOARD_SIZE];
 
@@ -254,7 +263,7 @@ private:
 	bool m_neverMoved[BOARD_SIZE][BOARD_SIZE];
 
 	/*
-		@brief		experimental copy of neverMoved (for check tests)
+		@brief		backup copy of neverMoved (so neverMoved can be modeified for check tests)
 	*/
 	bool m_neverMoved_backup[BOARD_SIZE][BOARD_SIZE];
 
@@ -264,9 +273,9 @@ private:
 	PieceLibrary m_plib;
 
 	/*
-		@brief		rules from ruleset.json
+		@brief		rules for initial board and royal piece
 	*/
-	Ruleset* m_rules;
+	Ruleset m_rules;
 };
 
 #endif BOARD_H

@@ -10,9 +10,9 @@ Todo
 	-checkmate: pseudocode written
 	-new game screen - rules selection
 		-board, king-piece
+	-add rules selection to saves
 
-	add rules selection to saves
-	rules preset json - later options like timed?
+	additional rules, like timed?
 	add more pieces to pieces json
 
 

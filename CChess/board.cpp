@@ -1,22 +1,28 @@
 ﻿#include <iostream>     // std::cout
-#include <fstream>      // std::ifstream
 #include <algorithm>	// std::copy
 #include "board.h"
 
 
 // Public
 // ------
-Board::Board(Ruleset* rs) : m_plib(), m_rules(rs) {
+Board::Board() : m_plib(), m_rules() {
 	reset();
 }
 
-void Board::reset() {
+void Board::reset(const std::string& newRules) {
+	if (!newRules.empty()) {
+		m_rules.setRules(newRules);
+	}
 	for (int i = 0; i < BOARD_SIZE; ++i) {
 		for (int j = 0; j < BOARD_SIZE; ++j) {
-			m_board[i][j] = m_rules->getInitialBoardAt(i, j);//copy initial to board (length 1 string is a char)
+			m_board[i][j] = m_rules.getInitialBoardAt(i, j);//copy initial to board (length 1 string is a char)
 			m_neverMoved[i][j] = (m_board[i][j] != EMPTY);	//reset neverMoved; only positions with pieces are eligible
 		}
 	}		//m_board_backup & m_neverMoved_backup can have anything as they are overwritten often
+}
+
+void Board::printRules() {
+	m_rules.printAll();
 }
 
 void Board::validateCurrent(const std::string& current, const int& turn) const {
@@ -217,7 +223,7 @@ const std::string Board::findRoyal(const int& side) const {
 			std::string pos;
 			pos += col;
 			pos += row;
-			if (pieceAt(pos) == m_rules->getRoyal(side)) {
+			if (pieceAt(pos) == m_rules.getRoyal(side)) {
 				return pos;
 			}
 		}

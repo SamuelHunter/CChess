@@ -52,9 +52,10 @@ public:
 		@brief		saves game history to file
 
 		@param		filename	name of file (without extension) to save history to
+		@param		rules		name of rules that game is being played under
 		@param		silent		if true, won't print success message
 	*/
-	void save(const std::string& filename, const bool& silent = false) const;
+	void save(const std::string& filename, const std::string& rules, const bool& silent = false) const;
 
 	/*
 		@brief		deletes file in save directory (for undo_temp)

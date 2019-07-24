@@ -22,6 +22,12 @@ int inline whichSide(const char& piece) {
 const std::string JSON_EXT = ".json";
 
 const std::string SAVE_DIR = "saves\\";
+const std::string SAVE_RULES = "rules";
+const std::string SAVE_ROUND = "round";
+const std::string SAVE_WHITE_TURN = "white_turn";
+const std::string SAVE_BLACK_TURN = "black_turn";
+const std::string SAVE_TIME = "time";
+
 const std::string UNDO_TEMP = "undo_temp";
 
 const std::string RULES_DIR = "rules\\";

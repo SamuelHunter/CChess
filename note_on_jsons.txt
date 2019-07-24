@@ -1,0 +1,72 @@
+piece_library.json
+==================
+
+"K": {				//piece uses char 'K'
+				//make sure to use uppercase or program won't identify a matching piece on the board
+
+    "name": "King",		//proper name
+				//will be re-written in all lowercase or all uppercase to show side
+
+    "initial": [],		//ADDITIONAL moves available if piece is in starting position and never moved
+				//do not list offsets that already appear in move!
+
+    "move": [			//array of move offsets in the form [forward, right]
+      [1, 0],			//an optional third component, range is allowable and assumed to be 1
+      [1, 1],			//[1, -1, -1] means infinite range in the up-left direction
+      [0, 1],
+      [-1, 1],
+      [-1, 0],
+      [-1, -1],
+      [0, -1],
+      [1, -1]
+    ],
+
+    "capture": "move"		//instead of copying the moves array,
+				//the parser will recognize the string name of another and follow it instead
+				//unlike initial, captures is INDEPENDENT of moves and will not automatically be the same
+  },
+
+
+ruleset.json
+============
+
+"check": {						//name of rules
+    "board": [						//initial board: uppercase is white, lowercase is black, " " is empty,
+      ["K", " ", " ", " ", " ", " ", " ", " "],		//		 characters correspond to piece_library.json
+      [" ", " ", " ", " ", " ", " ", " ", " "],
+      [" ", "p", "b", " ", " ", " ", " ", " "],
+      [" ", " ", " ", " ", " ", " ", " ", " "],
+      [" ", " ", " ", " ", " ", " ", " ", " "],
+      [" ", " ", " ", " ", " ", " ", " ", " "],
+      [" ", " ", " ", " ", " ", " ", " ", " "],
+      [" ", " ", " ", " ", " ", " ", " ", "k"]
+    ],
+    "royal": "K"					//piece acting as king (USE UPPERCASE, as in piece_library.json)
+  },
+
+game1.json
+==========
+
+{
+  "round": {					//array of rounds stored in history; index starting at 1
+    "0": {					//first/0th round
+      "black_turn": [				//moves taken by black during the 0th round
+        [					//'b' comes before 'w', so json stores black_turn before white_turn,
+          "c7",					//but program recognizes that white is first
+          "c6"
+        ]
+      ],
+      "white_turn": [				//moves taken by white during 0th round
+        [
+          "a2",					//starting position a2
+          "a4"					//ending position a4
+        ]
+      ]
+    },
+    
+  ...
+
+
+  "rules": "normal",				//name of rules object that moves were made under, see ruleset.json
+  "time": "2019-07-23 23:00:09"			//time game was saved at (Year-Month-Date Hour:Minute:Second)
+}

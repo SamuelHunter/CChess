@@ -8,7 +8,7 @@
 class Game {
 public:
 	/*
-		@brief		constructs the board; White has first turn
+		@brief		calls reset()
 	*/
 	Game();
 
@@ -29,25 +29,27 @@ public:
 		@param		filename		name of file (without extension) to be loaded into history
 		@param		silent			if true, won't print success message
 
-		@return		true if moves in file are valid and loaded, false otherwise
+		@throw		invalid_argument if file contains illegal move(s)
 	*/
-	bool load(const std::string& filename, const bool& silent = false);
+	void load(const std::string& filename, const bool& silent = false);
 
 	/*
 		@brief		resets game conditions to start
+
+		@param		newRules		if supplied, rules will be updated as well
 	*/
-	void reset();
+	void reset(const std::string& newRules = "");
 
 private:
 	/*
 		@return		whether user confirmed the command when prompted
 	*/
-	bool confirm() const;
+	bool confirm(const std::string& message = "Confirm") const;
 
 	/*
 		@return		filename (without extension) entered by user
 	*/
-	const std::string requestFilename() const;
+	const std::string requestString(const std::string& message) const;
 
 	/*
 		@brief		prints all available moves from current
@@ -65,7 +67,7 @@ private:
 		@brief		board containing layout of pieces, move checking, and rules
 					pointer instead of object so rules can be supplied after game object is constructed
 	*/
-	Board* m_board;
+	Board m_board;
 
 	/*
 		@brief		enum of whose turn it currently is (White or Black)
@@ -78,9 +80,9 @@ private:
 	History m_history;
 
 	/*
-		@brief		ruleset for board
+		@brief		name of rules game is being played under (from ruleset.json)
 	*/
-	Ruleset m_ruleset;
+	std::string m_rules_name;
 };
 
 #endif GAME_H
